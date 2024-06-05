@@ -11,7 +11,6 @@ import (
 )
 
 func blockPublicAccess(name string, s3Client s3.S3) {
-	//get bucket public access settings
 	publicAccessBlock, err := s3Client.GetPublicAccessBlock(&s3.GetPublicAccessBlockInput{
 		Bucket: aws.String(name),
 	})
@@ -21,7 +20,6 @@ func blockPublicAccess(name string, s3Client s3.S3) {
 	}
 	fmt.Println(publicAccessBlock)
 
-	//block public access
 	_, err = s3Client.PutPublicAccessBlock(&s3.PutPublicAccessBlockInput{
 		Bucket: aws.String(name),
 		PublicAccessBlockConfiguration: &s3.PublicAccessBlockConfiguration{
@@ -39,7 +37,6 @@ func blockPublicAccess(name string, s3Client s3.S3) {
 }
 
 func validateCredentials(stsClient sts.STS, profile string) {
-	//get caller identity
 	_, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
 		fmt.Println("Could not find valid credentials for profile: " + profile)
@@ -54,7 +51,6 @@ func main() {
 	region := flag.String("region", "eu-west-1", "The region of the bucket")
 	flag.Parse()
 
-	//create a session using the shared credentials file, using the profile name
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		Profile:           *profile,
@@ -63,22 +59,20 @@ func main() {
 		},
 	}))
 
-	//get sts client and get caller identity
-	stsSvc := sts.New(sess)
-	validateCredentials(*stsSvc, *profile)
+	stsClient := sts.New(sess)
+	validateCredentials(*stsClient, *profile)
 
-	svc := s3.New(sess)
+	s3Client := s3.New(sess)
 
 	//check bucket exists
-	bucketInfo, err := svc.HeadBucket(&s3.HeadBucketInput{
+	bucketInfo, err := s3Client.HeadBucket(&s3.HeadBucketInput{
 		Bucket: aws.String(*name),
 	})
 	fmt.Println(bucketInfo)
 	if err != nil {
-		fmt.Println(err.Error())
 		fmt.Println("Unable to find bucket. Please make the bucket exists and you have the correct region set.")
 		return
 	}
 
-	blockPublicAccess(*name, *svc)
+	blockPublicAccess(*name, *s3Client)
 }
