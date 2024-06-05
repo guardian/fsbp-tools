@@ -11,16 +11,7 @@ import (
 )
 
 func blockPublicAccess(name string, s3Client s3.S3) {
-	publicAccessBlock, err := s3Client.GetPublicAccessBlock(&s3.GetPublicAccessBlockInput{
-		Bucket: aws.String(name),
-	})
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Println(publicAccessBlock)
-
-	_, err = s3Client.PutPublicAccessBlock(&s3.PutPublicAccessBlockInput{
+	_, err := s3Client.PutPublicAccessBlock(&s3.PutPublicAccessBlockInput{
 		Bucket: aws.String(name),
 		PublicAccessBlockConfiguration: &s3.PublicAccessBlockConfiguration{
 			BlockPublicAcls:       aws.Bool(true),
@@ -65,14 +56,14 @@ func main() {
 	s3Client := s3.New(sess)
 
 	//check bucket exists
-	bucketInfo, err := s3Client.HeadBucket(&s3.HeadBucketInput{
+	_, err := s3Client.HeadBucket(&s3.HeadBucketInput{
 		Bucket: aws.String(*name),
 	})
-	fmt.Println(bucketInfo)
 	if err != nil {
 		fmt.Println("Unable to find bucket. Please make the bucket exists and you have the correct region set.")
 		return
 	}
+	fmt.Println("Found bucket: " + *name + " in region: " + *region)
 
 	blockPublicAccess(*name, *s3Client)
 }
