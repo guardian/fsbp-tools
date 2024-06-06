@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 
@@ -10,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
-func blockPublicAccess(name string, s3Client s3.S3) {
-	_, err := s3Client.PutPublicAccessBlock(&s3.PutPublicAccessBlockInput{
+func blockPublicAccess(name string, s3Client s3.S3) (*s3.PutPublicAccessBlockOutput, error) {
+	resp, err := s3Client.PutPublicAccessBlock(&s3.PutPublicAccessBlockInput{
 		Bucket: aws.String(name),
 		PublicAccessBlockConfiguration: &s3.PublicAccessBlockConfiguration{
 			BlockPublicAcls:       aws.Bool(true),
@@ -21,19 +22,18 @@ func blockPublicAccess(name string, s3Client s3.S3) {
 		},
 	})
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		return resp, err
 	}
 	fmt.Println("Public access blocked for bucket: " + name)
+	return resp, nil
 }
 
-func validateCredentials(stsClient sts.STS, profile string) {
-	_, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+func validateCredentials(stsClient sts.STS, profile string) (*sts.GetCallerIdentityOutput, error) {
+	resp, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
-		fmt.Println("Could not find valid credentials for profile: " + profile)
-		return
+		return resp, errors.New("Could not find valid credentials for profile: " + profile)
 	}
-	fmt.Println("Credentials validated for profile: " + profile)
+	return resp, nil
 }
 
 func main() {
@@ -51,12 +51,16 @@ func main() {
 	}))
 
 	stsClient := sts.New(sess)
-	validateCredentials(*stsClient, *profile)
+	_, err := validateCredentials(*stsClient, *profile)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	s3Client := s3.New(sess)
 
 	//check bucket exists
-	_, err := s3Client.HeadBucket(&s3.HeadBucketInput{
+	_, err = s3Client.HeadBucket(&s3.HeadBucketInput{
 		Bucket: aws.String(*name),
 	})
 	if err != nil {
@@ -65,5 +69,9 @@ func main() {
 	}
 	fmt.Println("Found bucket: " + *name + " in region: " + *region)
 
-	blockPublicAccess(*name, *s3Client)
+	_, err = blockPublicAccess(*name, *s3Client)
+	if err != nil {
+		fmt.Println("Error blocking public access: " + err.Error())
+		return
+	}
 }
