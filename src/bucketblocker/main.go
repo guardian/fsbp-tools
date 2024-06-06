@@ -42,6 +42,11 @@ func main() {
 	region := flag.String("region", "eu-west-1", "The region of the bucket")
 	flag.Parse()
 
+	if *name == "" {
+		fmt.Println("Please provide a bucket name")
+		return
+	}
+
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		Profile:           *profile,
