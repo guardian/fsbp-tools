@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
-func blockPublicAccess(name string, s3Client s3.S3) (*s3.PutPublicAccessBlockOutput, error) {
+func blockPublicAccess(s3Client *s3.S3, name string) (*s3.PutPublicAccessBlockOutput, error) {
 	resp, err := s3Client.PutPublicAccessBlock(&s3.PutPublicAccessBlockInput{
 		Bucket: aws.String(name),
 		PublicAccessBlockConfiguration: &s3.PublicAccessBlockConfiguration{
@@ -28,7 +28,7 @@ func blockPublicAccess(name string, s3Client s3.S3) (*s3.PutPublicAccessBlockOut
 	return resp, nil
 }
 
-func validateCredentials(stsClient sts.STS, profile string) (*sts.GetCallerIdentityOutput, error) {
+func validateCredentials(stsClient *sts.STS, profile string) (*sts.GetCallerIdentityOutput, error) {
 	resp, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
 		return resp, errors.New("Could not find valid credentials for profile: " + profile)
@@ -51,7 +51,7 @@ func main() {
 	}))
 
 	stsClient := sts.New(sess)
-	_, err := validateCredentials(*stsClient, *profile)
+	_, err := validateCredentials(stsClient, *profile)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -69,7 +69,7 @@ func main() {
 	}
 	fmt.Println("Found bucket: " + *name + " in region: " + *region)
 
-	_, err = blockPublicAccess(*name, *s3Client)
+	_, err = blockPublicAccess(s3Client, *name)
 	if err != nil {
 		fmt.Println("Error blocking public access: " + err.Error())
 		return
