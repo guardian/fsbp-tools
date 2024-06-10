@@ -38,12 +38,22 @@ func validateCredentials(stsClient *sts.STS, profile string) (*sts.GetCallerIden
 
 func main() {
 	name := flag.String("bucket", "", "The name of the bucket to block")
-	profile := flag.String("profile", "default", "The name of the profile to use")
-	region := flag.String("region", "eu-west-1", "The region of the bucket")
+	profile := flag.String("profile", "", "The name of the profile to use")
+	region := flag.String("region", "", "The region of the bucket")
 	flag.Parse()
 
 	if *name == "" {
 		fmt.Println("Please provide a bucket name")
+		return
+	}
+
+	if *profile == "" {
+		fmt.Println("Please provide a profile name")
+		return
+	}
+
+	if *region == "" {
+		fmt.Println("Please provide a region")
 		return
 	}
 
