@@ -13,8 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-func blockPublicAccess(s3Client *s3.Client, name string) (*s3.PutPublicAccessBlockOutput, error) {
-	resp, err := s3Client.PutPublicAccessBlock(context.TODO(), &s3.PutPublicAccessBlockInput{
+func blockPublicAccess(s3Client *s3.Client, ctx context.Context, name string) (*s3.PutPublicAccessBlockOutput, error) {
+	resp, err := s3Client.PutPublicAccessBlock(ctx, &s3.PutPublicAccessBlockInput{
 		Bucket: aws.String(name),
 		PublicAccessBlockConfiguration: &types.PublicAccessBlockConfiguration{
 			BlockPublicAcls:       aws.Bool(true),
@@ -30,8 +30,8 @@ func blockPublicAccess(s3Client *s3.Client, name string) (*s3.PutPublicAccessBlo
 	return resp, nil
 }
 
-func validateCredentials(stsClient *sts.Client, profile string) (*sts.GetCallerIdentityOutput, error) {
-	resp, err := stsClient.GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
+func validateCredentials(stsClient *sts.Client, ctx context.Context, profile string) (*sts.GetCallerIdentityOutput, error) {
+	resp, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return resp, errors.New("Could not find valid credentials for profile: " + profile)
 	}
@@ -39,6 +39,7 @@ func validateCredentials(stsClient *sts.Client, profile string) (*sts.GetCallerI
 }
 
 func main() {
+	ctx := context.Background()
 	name := flag.String("bucket", "", "The name of the bucket to block")
 	profile := flag.String("profile", "", "The name of the profile to use")
 	region := flag.String("region", "", "The region of the bucket")
@@ -59,7 +60,7 @@ func main() {
 		return
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithSharedConfigProfile(*profile), config.WithDefaultRegion(*region))
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(*profile), config.WithDefaultRegion(*region))
 	if err != nil {
 		fmt.Println("Error loading configuration")
 		return
@@ -67,7 +68,7 @@ func main() {
 
 	stsClient := sts.NewFromConfig(cfg)
 
-	_, err = validateCredentials(stsClient, *profile)
+	_, err = validateCredentials(stsClient, ctx, *profile)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -75,7 +76,7 @@ func main() {
 
 	s3Client := s3.NewFromConfig(cfg)
 
-	_, err = s3Client.HeadBucket(context.TODO(), &s3.HeadBucketInput{
+	_, err = s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
 		Bucket: name,
 	})
 	if err != nil {
@@ -84,7 +85,7 @@ func main() {
 	}
 	fmt.Println("Found bucket: " + *name + " in region: " + *region)
 
-	_, err = blockPublicAccess(s3Client, *name)
+	_, err = blockPublicAccess(s3Client, ctx, *name)
 	if err != nil {
 		fmt.Println("Error blocking public access: " + err.Error())
 		return
