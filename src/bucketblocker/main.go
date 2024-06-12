@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -76,10 +77,8 @@ func main() {
 		return
 	}
 
-	// s3Client := s3.NewFromConfig(cfg)
-
+	fmt.Println("Retrieving Security Hub control failures for S3.8")
 	securityHubClient := securityhub.NewFromConfig(cfg)
-
 	maxResults := int32(100)
 	controlId := "S3.8"
 	complianceStatus := "PASSED"
@@ -109,18 +108,34 @@ func main() {
 
 	findingsArr := findings.Findings
 
+	var failingBuckets []string
 	for _, finding := range findingsArr {
-		fmt.Println(*finding.GeneratorId)
-		fmt.Println(*finding.Id)
-		fmt.Println(*finding.Description)
-		fmt.Println(*finding.ProductArn)
 		for _, resource := range finding.Resources {
-			fmt.Println(*resource.Id)
+			failingBuckets = append(failingBuckets, strings.TrimPrefix(*resource.Id, "arn:aws:s3:::"))
 		}
-		fmt.Println(*finding.Title)
-		fmt.Println(*finding.AwsAccountName)
-		fmt.Println(finding.Compliance.Status)
 	}
+
+	fmt.Println("Found " + fmt.Sprint(len(failingBuckets)) + " buckets failing control " + controlId)
+
+	s3Client := s3.NewFromConfig(cfg)
+
+	fmt.Println("Finding buckets provisioned with GuCDK, which will be skipped, to avoid drift")
+	var guCdkTaggedBuckets []string
+	for _, bucket := range failingBuckets {
+		tagging, err := s3Client.GetBucketTagging(ctx, &s3.GetBucketTaggingInput{
+			Bucket: aws.String(bucket),
+		})
+		if err == nil {
+			for _, tag := range tagging.TagSet {
+				if *tag.Key == "gu:cdk:version" {
+					guCdkTaggedBuckets = append(guCdkTaggedBuckets, bucket)
+				}
+
+			}
+		}
+	}
+
+	fmt.Println("Found " + fmt.Sprint(len(guCdkTaggedBuckets)) + " buckets provisioned with GuCDK")
 
 	// _, err = s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
 	// 	Bucket: name,
