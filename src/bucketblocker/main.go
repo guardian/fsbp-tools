@@ -124,7 +124,11 @@ func main() {
 			for _, tag := range tagging.TagSet {
 				if *tag.Key == "gu:cdk:version" {
 					fmt.Println("Skipping bucket: " + bucket + " provisioned with GuCDK")
-					bucketsToBlock = append(bucketsToBlock[:idx], bucketsToBlock[idx+1:]...)
+					bucketsToBlock, err = removeIndexFromSlice(bucketsToBlock, idx)
+					if err != nil {
+						fmt.Println("Error removing bucket from list")
+						return
+					}
 
 				}
 
