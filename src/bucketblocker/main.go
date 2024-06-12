@@ -8,7 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	shTypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws"
 )
@@ -16,7 +18,7 @@ import (
 func blockPublicAccess(s3Client *s3.Client, ctx context.Context, name string) (*s3.PutPublicAccessBlockOutput, error) {
 	resp, err := s3Client.PutPublicAccessBlock(ctx, &s3.PutPublicAccessBlockInput{
 		Bucket: aws.String(name),
-		PublicAccessBlockConfiguration: &types.PublicAccessBlockConfiguration{
+		PublicAccessBlockConfiguration: &s3Types.PublicAccessBlockConfiguration{
 			BlockPublicAcls:       aws.Bool(true),
 			IgnorePublicAcls:      aws.Bool(true),
 			BlockPublicPolicy:     aws.Bool(true),
@@ -74,21 +76,57 @@ func main() {
 		return
 	}
 
-	s3Client := s3.NewFromConfig(cfg)
+	// s3Client := s3.NewFromConfig(cfg)
 
-	_, err = s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
-		Bucket: name,
+	securityHubClient := securityhub.NewFromConfig(cfg)
+
+	maxResults := int32(100)
+	controlId := "S3.8"
+
+	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
+		MaxResults: &maxResults,
+		Filters: &shTypes.AwsSecurityFindingFilters{
+			ComplianceSecurityControlId: []shTypes.StringFilter{{
+				Value:      &controlId,
+				Comparison: shTypes.StringFilterComparisonEquals,
+			}},
+		},
 	})
 	if err != nil {
-		fmt.Println("Unable to find bucket. Please make the bucket exists and you have the correct region set.")
+		fmt.Println("Unable to retrieve Security Hub findings")
 		return
 	}
-	fmt.Println("Found bucket: " + *name + " in region: " + *region)
 
-	_, err = blockPublicAccess(s3Client, ctx, *name)
-	if err != nil {
-		fmt.Println("Error blocking public access: " + err.Error())
-		return
+	findingsArr := findings.Findings
+
+	for i := 0; i < len(findingsArr); i++ {
+		fmt.Println()
+		fmt.Println(*findingsArr[i].GeneratorId)
+		fmt.Println(*findingsArr[i].Id)
+		fmt.Println(*findingsArr[i].Description)
+		fmt.Println(*findingsArr[i].ProductArn)
+		for j := 0; j < len(findingsArr[i].Resources); j++ {
+			fmt.Println(*findingsArr[i].Resources[j].Id)
+		}
+		fmt.Println(*findingsArr[i].Title)
+		fmt.Println(*findingsArr[i].AwsAccountName)
+		fmt.Println(findingsArr[i].Criticality) // nil
+
 	}
+
+	// _, err = s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
+	// 	Bucket: name,
+	// })
+	// if err != nil {
+	// 	fmt.Println("Unable to find bucket. Please make the bucket exists and you have the correct region set.")
+	// 	return
+	// }
+	// fmt.Println("Found bucket: " + *name + " in region: " + *region)
+
+	// _, err = blockPublicAccess(s3Client, ctx, *name)
+	// if err != nil {
+	// 	fmt.Println("Error blocking public access: " + err.Error())
+	// 	return
+	// }
 
 }

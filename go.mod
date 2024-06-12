@@ -6,7 +6,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.18
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.55.1
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.12
+	github.com/aws/aws-sdk-go-v2/service/securityhub v1.49.2
 )
+
 
 require (
 	github.com/aws/aws-sdk-go v1.53.20
