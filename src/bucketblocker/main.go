@@ -43,15 +43,9 @@ func validateCredentials(stsClient *sts.Client, ctx context.Context, profile str
 
 func main() {
 	ctx := context.Background()
-	name := flag.String("bucket", "", "The name of the bucket to block")
 	profile := flag.String("profile", "", "The name of the profile to use")
 	region := flag.String("region", "", "The region of the bucket")
 	flag.Parse()
-
-	if *name == "" {
-		fmt.Println("Please provide a bucket name")
-		return
-	}
 
 	if *profile == "" {
 		fmt.Println("Please provide a profile name")
@@ -108,43 +102,35 @@ func main() {
 
 	findingsArr := findings.Findings
 
-	var failingBuckets []string
+	var bucketsToBlock []string
 	for _, finding := range findingsArr {
 		for _, resource := range finding.Resources {
-			failingBuckets = append(failingBuckets, strings.TrimPrefix(*resource.Id, "arn:aws:s3:::"))
+			bucketsToBlock = append(bucketsToBlock, strings.TrimPrefix(*resource.Id, "arn:aws:s3:::"))
 		}
 	}
 
-	fmt.Println("Found " + fmt.Sprint(len(failingBuckets)) + " buckets failing control " + controlId)
+	fmt.Println("Found " + fmt.Sprint(len(bucketsToBlock)) + " buckets failing control " + controlId)
 
 	s3Client := s3.NewFromConfig(cfg)
 
 	fmt.Println("Finding buckets provisioned with GuCDK, which will be skipped, to avoid drift")
-	var guCdkTaggedBuckets []string
-	for _, bucket := range failingBuckets {
+	for idx, bucket := range bucketsToBlock {
 		tagging, err := s3Client.GetBucketTagging(ctx, &s3.GetBucketTaggingInput{
 			Bucket: aws.String(bucket),
 		})
 		if err == nil {
 			for _, tag := range tagging.TagSet {
 				if *tag.Key == "gu:cdk:version" {
-					guCdkTaggedBuckets = append(guCdkTaggedBuckets, bucket)
+					fmt.Println("Skipping bucket: " + bucket + " provisioned with GuCDK")
+					bucketsToBlock = append(bucketsToBlock[:idx], bucketsToBlock[idx+1:]...)
+
 				}
 
 			}
 		}
 	}
 
-	fmt.Println("Found " + fmt.Sprint(len(guCdkTaggedBuckets)) + " buckets provisioned with GuCDK")
-
-	// _, err = s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
-	// 	Bucket: name,
-	// })
-	// if err != nil {
-	// 	fmt.Println("Unable to find bucket. Please make the bucket exists and you have the correct region set.")
-	// 	return
-	// }
-	// fmt.Println("Found bucket: " + *name + " in region: " + *region)
+	fmt.Println("Found " + fmt.Sprint(len(bucketsToBlock)) + " buckets not provisioned with GuCDK")
 
 	// _, err = blockPublicAccess(s3Client, ctx, *name)
 	// if err != nil {

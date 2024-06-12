@@ -2,9 +2,7 @@
 
 ## How to run:
 
-Bucket blocker takes 3 flags:
-
-- **bucket**: The name of the bucket to block
+Bucket blocker takes 2 flags:
 
 - **profile**: The profile to use when connecting to AWS.
 
@@ -14,7 +12,6 @@ Currently, there isn't a process to build the binary. You can run the applicatio
 
 ```bash
 go run src/bucketblocker/main.go \
--bucket <bucket_name> \
 -profile <profile_name> \
 -region <region>
 ```
