@@ -109,21 +109,17 @@ func main() {
 
 	findingsArr := findings.Findings
 
-	for i := 0; i < len(findingsArr); i++ {
-		fmt.Println()
-		fmt.Println(*findingsArr[i].GeneratorId)
-		fmt.Println(*findingsArr[i].Id)
-		fmt.Println(*findingsArr[i].Description)
-		fmt.Println(*findingsArr[i].ProductArn)
-		for j := 0; j < len(findingsArr[i].Resources); j++ {
-			fmt.Println(*findingsArr[i].Resources[j].Id)
+	for _, finding := range findingsArr {
+		fmt.Println(*finding.GeneratorId)
+		fmt.Println(*finding.Id)
+		fmt.Println(*finding.Description)
+		fmt.Println(*finding.ProductArn)
+		for _, resource := range finding.Resources {
+			fmt.Println(*resource.Id)
 		}
-		fmt.Println(*findingsArr[i].Title)
-		fmt.Println(*findingsArr[i].AwsAccountName)
-		fmt.Println(findingsArr[i].Compliance.Status)
-		fmt.Println(findingsArr[i].RecordState)
-		fmt.Println(findingsArr[i].Workflow.Status)
-
+		fmt.Println(*finding.Title)
+		fmt.Println(*finding.AwsAccountName)
+		fmt.Println(finding.Compliance.Status)
 	}
 
 	// _, err = s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
