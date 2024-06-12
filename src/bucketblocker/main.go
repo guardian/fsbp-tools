@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -45,6 +46,7 @@ func main() {
 	ctx := context.Background()
 	profile := flag.String("profile", "", "The name of the profile to use")
 	region := flag.String("region", "", "The region of the bucket")
+	dryRun := flag.Bool("dry-run", true, "Dry run mode")
 	flag.Parse()
 
 	if *profile == "" {
@@ -132,10 +134,19 @@ func main() {
 
 	fmt.Println("Found " + fmt.Sprint(len(bucketsToBlock)) + " buckets not provisioned with GuCDK")
 
-	// _, err = blockPublicAccess(s3Client, ctx, *name)
-	// if err != nil {
-	// 	fmt.Println("Error blocking public access: " + err.Error())
-	// 	return
-	// }
+	if *dryRun {
+		fmt.Println("Dry run mode enabled. Skipping blocking public access for buckets")
+	} else {
+		fmt.Println("Blocking public access for buckets in 5 seconds. Press CTRL+C to cancel.")
+		time.Sleep(5 * time.Second)
+		for _, name := range bucketsToBlock {
+			_, err = blockPublicAccess(s3Client, ctx, name)
+			if err != nil {
+				fmt.Println("Error blocking public access: " + err.Error())
+				return
+			}
+
+		}
+	}
 
 }
