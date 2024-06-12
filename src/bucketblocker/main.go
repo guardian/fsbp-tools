@@ -82,12 +82,22 @@ func main() {
 
 	maxResults := int32(100)
 	controlId := "S3.8"
+	complianceStatus := "PASSED"
+	recordState := "ACTIVE"
 
 	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
 		MaxResults: &maxResults,
 		Filters: &shTypes.AwsSecurityFindingFilters{
 			ComplianceSecurityControlId: []shTypes.StringFilter{{
 				Value:      &controlId,
+				Comparison: shTypes.StringFilterComparisonEquals,
+			}},
+			ComplianceStatus: []shTypes.StringFilter{{
+				Value:      &complianceStatus,
+				Comparison: shTypes.StringFilterComparisonNotEquals,
+			}},
+			RecordState: []shTypes.StringFilter{{
+				Value:      &recordState,
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
 		},
@@ -110,7 +120,9 @@ func main() {
 		}
 		fmt.Println(*findingsArr[i].Title)
 		fmt.Println(*findingsArr[i].AwsAccountName)
-		fmt.Println(findingsArr[i].Criticality) // nil
+		fmt.Println(findingsArr[i].Compliance.Status)
+		fmt.Println(findingsArr[i].RecordState)
+		fmt.Println(findingsArr[i].Workflow.Status)
 
 	}
 
