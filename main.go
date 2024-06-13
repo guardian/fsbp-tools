@@ -3,15 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/guardian/bucketblocker/utils"
 )
 
@@ -20,17 +19,9 @@ func main() {
 	ctx := context.Background()
 	args := utils.ParseArgs()
 
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(args.Profile), config.WithDefaultRegion(args.Region))
+	cfg, err := utils.LoadDefaultConfig(ctx, args.Profile, args.Region)
 	if err != nil {
-		fmt.Println("Error loading configuration")
-		return
-	}
-
-	stsClient := sts.NewFromConfig(cfg)
-	_, err = utils.ValidateCredentials(stsClient, ctx, args.Profile)
-	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
 	fmt.Println("Retrieving Security Hub control failures for S3.8")

@@ -33,9 +33,9 @@ func ParseArgs() cliArgs {
 	}
 }
 
-func RemoveIndexFromSlice(slice []string, idx uint) ([]string, error) {
+func RemoveIndexFromSlice(slice []string, idx int) ([]string, error) {
 
-	if int(idx) >= len(slice) {
+	if idx < 0 || idx >= len(slice) {
 		return slice, errors.New("index out of range")
 	}
 
