@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -78,8 +77,7 @@ func main() {
 					fmt.Println("Skipping bucket: " + bucket + " provisioned with GuCDK")
 					bucketsToBlock, err = utils.RemoveIndexFromSlice(bucketsToBlock, idx)
 					if err != nil {
-						fmt.Println("Error removing bucket from list")
-						return
+						log.Fatal("Error removing bucket from list")
 					}
 
 				}
@@ -90,19 +88,5 @@ func main() {
 
 	fmt.Println("Found " + fmt.Sprint(len(bucketsToBlock)) + " buckets not provisioned with GuCDK")
 
-	if args.DryRun {
-		fmt.Println("Dry run mode enabled. Skipping blocking public access for buckets")
-	} else {
-		fmt.Println("Blocking public access for buckets in 5 seconds. Press CTRL+C to cancel.")
-		time.Sleep(5 * time.Second)
-		for _, name := range bucketsToBlock {
-			_, err = utils.BlockPublicAccess(s3Client, ctx, name)
-			if err != nil {
-				fmt.Println("Error blocking public access: " + err.Error())
-				return
-			}
-
-		}
-	}
-
+	utils.BlockBuckets(s3Client, ctx, bucketsToBlock, args.DryRun)
 }
