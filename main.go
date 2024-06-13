@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"strings"
 	"time"
@@ -19,29 +18,16 @@ import (
 func main() {
 
 	ctx := context.Background()
-	profile := flag.String("profile", "", "The name of the profile to use")
-	region := flag.String("region", "", "The region of the bucket")
-	dryRun := flag.Bool("dry-run", true, "Dry run mode")
-	flag.Parse()
+	args := utils.ParseArgs()
 
-	if *profile == "" {
-		fmt.Println("Please provide a profile name")
-		return
-	}
-
-	if *region == "" {
-		fmt.Println("Please provide a region")
-		return
-	}
-
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(*profile), config.WithDefaultRegion(*region))
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(args.Profile), config.WithDefaultRegion(args.Region))
 	if err != nil {
 		fmt.Println("Error loading configuration")
 		return
 	}
 
 	stsClient := sts.NewFromConfig(cfg)
-	_, err = utils.ValidateCredentials(stsClient, ctx, *profile)
+	_, err = utils.ValidateCredentials(stsClient, ctx, args.Profile)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -113,7 +99,7 @@ func main() {
 
 	fmt.Println("Found " + fmt.Sprint(len(bucketsToBlock)) + " buckets not provisioned with GuCDK")
 
-	if *dryRun {
+	if args.DryRun {
 		fmt.Println("Dry run mode enabled. Skipping blocking public access for buckets")
 	} else {
 		fmt.Println("Blocking public access for buckets in 5 seconds. Press CTRL+C to cancel.")
