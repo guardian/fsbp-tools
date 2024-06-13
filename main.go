@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	shTypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/guardian/bucketblocker/utils"
@@ -56,18 +56,18 @@ func main() {
 
 	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
 		MaxResults: &maxResults,
-		Filters: &shTypes.AwsSecurityFindingFilters{
-			ComplianceSecurityControlId: []shTypes.StringFilter{{
+		Filters: &types.AwsSecurityFindingFilters{
+			ComplianceSecurityControlId: []types.StringFilter{{
 				Value:      &controlId,
-				Comparison: shTypes.StringFilterComparisonEquals,
+				Comparison: types.StringFilterComparisonEquals,
 			}},
-			ComplianceStatus: []shTypes.StringFilter{{
+			ComplianceStatus: []types.StringFilter{{
 				Value:      &complianceStatus,
-				Comparison: shTypes.StringFilterComparisonNotEquals,
+				Comparison: types.StringFilterComparisonNotEquals,
 			}},
-			RecordState: []shTypes.StringFilter{{
+			RecordState: []types.StringFilter{{
 				Value:      &recordState,
-				Comparison: shTypes.StringFilterComparisonEquals,
+				Comparison: types.StringFilterComparisonEquals,
 			}},
 		},
 	})
