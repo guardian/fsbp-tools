@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"reflect"
@@ -7,7 +7,7 @@ import (
 
 func TestRemoveElementFromSlice(t *testing.T) {
 	slice := []string{"a", "b", "c", "d", "e"}
-	slice, _ = removeIndexFromSlice(slice, 2)
+	slice, _ = RemoveIndexFromSlice(slice, 2)
 
 	if !reflect.DeepEqual(slice, []string{"a", "b", "d", "e"}) {
 		t.Errorf("Error removing element from slice")
@@ -16,7 +16,7 @@ func TestRemoveElementFromSlice(t *testing.T) {
 
 func TestRemoveLastElementFromSlice(t *testing.T) {
 	slice := []string{"a", "b", "c", "d", "e"}
-	slice, _ = removeIndexFromSlice(slice, 4)
+	slice, _ = RemoveIndexFromSlice(slice, 4)
 	if !reflect.DeepEqual(slice, []string{"a", "b", "c", "d"}) {
 		t.Errorf("Error removing element from slice")
 	}
@@ -24,18 +24,15 @@ func TestRemoveLastElementFromSlice(t *testing.T) {
 
 func TestRemoveFirstElementFromSlice(t *testing.T) {
 	slice := []string{"a", "b", "c", "d", "e"}
-	slice, _ = removeIndexFromSlice(slice, 0)
+	slice, _ = RemoveIndexFromSlice(slice, 0)
 	if !reflect.DeepEqual(slice, []string{"b", "c", "d", "e"}) {
 		t.Errorf("Error removing element from slice")
 	}
 }
 
 func TestRemoveNonExistingElementFromSlice(t *testing.T) {
-	//create a slice
 	slice := []string{"a", "b", "c", "d", "e"}
-	//remove element "f" from slice
-	_, err := removeIndexFromSlice(slice, 8)
-	//check if the error is returned
+	_, err := RemoveIndexFromSlice(slice, 8)
 	if err == nil {
 		t.Errorf("Did not return error for non existing element in slice")
 	}

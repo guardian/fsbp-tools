@@ -15,6 +15,7 @@ import (
 	shTypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/guardian/bucketblocker/utils"
 )
 
 func blockPublicAccess(s3Client *s3.Client, ctx context.Context, name string) (*s3.PutPublicAccessBlockOutput, error) {
@@ -97,6 +98,7 @@ func main() {
 			}},
 		},
 	})
+
 	if err != nil {
 		fmt.Println("Unable to retrieve Security Hub findings")
 		return
@@ -124,7 +126,7 @@ func main() {
 			for _, tag := range tagging.TagSet {
 				if *tag.Key == "gu:cdk:version" {
 					fmt.Println("Skipping bucket: " + bucket + " provisioned with GuCDK")
-					bucketsToBlock, err = removeIndexFromSlice(bucketsToBlock, idx)
+					bucketsToBlock, err = utils.RemoveIndexFromSlice(bucketsToBlock, idx)
 					if err != nil {
 						fmt.Println("Error removing bucket from list")
 						return

@@ -1,8 +1,8 @@
-package main
+package utils
 
 import "errors"
 
-func removeIndexFromSlice(slice []string, idx int) ([]string, error) {
+func RemoveIndexFromSlice(slice []string, idx int) ([]string, error) {
 
 	if idx < 0 || idx >= len(slice) {
 		return slice, errors.New("index out of range")
