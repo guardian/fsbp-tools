@@ -90,10 +90,7 @@ func removeGuCdkBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock
 			for _, tag := range tagging.TagSet {
 				if *tag.Key == "gu:cdk:version" {
 					fmt.Println("Skipping bucket: " + bucket + " provisioned with GuCDK")
-					bucketsToBlock, err = RemoveIndexFromSlice(bucketsToBlock, idx)
-					if err != nil {
-						return nil, err
-					}
+					bucketsToBlock = RemoveIndexFromSlice(bucketsToBlock, idx)
 				}
 			}
 		}
@@ -108,11 +105,13 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 	if err != nil {
 		return nil, err
 	}
-	nonCdkFailings, err := removeGuCdkBuckets(ctx, s3Client, failingBuckets)
+	failingBuckets, err = removeGuCdkBuckets(ctx, s3Client, failingBuckets)
 	if err != nil {
 		return nil, err
 	}
-	return nonCdkFailings, nil
+
+	failingBuckets = RemoveElementsWithForbiddenSubstrings(failingBuckets, []string{"cf"})
+	return failingBuckets, nil
 
 }
 

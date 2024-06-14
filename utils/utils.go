@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"errors"
 	"flag"
+	"fmt"
 	"log"
+	"strings"
 )
 
 type cliArgs struct {
@@ -33,11 +34,27 @@ func ParseArgs() cliArgs {
 	}
 }
 
-func RemoveIndexFromSlice(slice []string, idx int) ([]string, error) {
+func RemoveIndexFromSlice(slice []string, idx int) []string {
 
 	if idx < 0 || idx >= len(slice) {
-		return slice, errors.New("index out of range")
+		fmt.Println("Index out of range, returning original slice")
+		return slice
 	}
 
-	return append(slice[:idx], slice[idx+1:]...), nil
+	return append(slice[:idx], slice[idx+1:]...)
+}
+
+func RemoveElementsWithForbiddenSubstrings(slice []string, forbiddenSubstrings []string) []string {
+	for idx, element := range slice {
+		for _, forbiddenSubstring := range forbiddenSubstrings {
+			containsSubstring := strings.Contains(element, forbiddenSubstring)
+			if containsSubstring {
+				fmt.Println("Removing " + element + " as it contains forbidden string: " + forbiddenSubstring)
+				slice = RemoveIndexFromSlice(slice, idx)
+				break
+			}
+		}
+
+	}
+	return slice
 }
