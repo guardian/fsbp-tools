@@ -23,12 +23,10 @@ func main() {
 	fmt.Println("Retrieving Security Hub control failures for S3.8")
 	securityHubClient := securityhub.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
-
 	bucketsToBlock, err := utils.FindBucketsToBlock(ctx, securityHubClient, s3Client)
-
 	if err != nil {
 		log.Fatalf("Error removing GuCDK provisioned buckets: %v", err)
 	}
 
-	utils.BlockBuckets(s3Client, ctx, bucketsToBlock, args.DryRun)
+	utils.BlockBuckets(ctx, s3Client, bucketsToBlock, args.DryRun)
 }

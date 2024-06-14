@@ -116,7 +116,7 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 
 }
 
-func blockPublicAccess(s3Client *s3.Client, ctx context.Context, name string) (*s3.PutPublicAccessBlockOutput, error) {
+func blockPublicAccess(ctx context.Context, s3Client *s3.Client, name string) (*s3.PutPublicAccessBlockOutput, error) {
 	resp, err := s3Client.PutPublicAccessBlock(ctx, &s3.PutPublicAccessBlockInput{
 		Bucket: aws.String(name),
 		PublicAccessBlockConfiguration: &s3Types.PublicAccessBlockConfiguration{
@@ -133,14 +133,14 @@ func blockPublicAccess(s3Client *s3.Client, ctx context.Context, name string) (*
 	return resp, nil
 }
 
-func BlockBuckets(s3Client *s3.Client, ctx context.Context, bucketsToBlock []string, dryRun bool) {
+func BlockBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock []string, dryRun bool) {
 	if dryRun {
 		fmt.Println("Dry run mode enabled. Skipping blocking public access for buckets")
 	} else {
 		fmt.Println("Blocking public access for buckets in 5 seconds. Press CTRL+C to cancel.")
 		time.Sleep(5 * time.Second)
 		for _, name := range bucketsToBlock {
-			_, err := blockPublicAccess(s3Client, ctx, name)
+			_, err := blockPublicAccess(ctx, s3Client, name)
 			if err != nil {
 				fmt.Println("Error blocking public access: " + err.Error())
 			}
