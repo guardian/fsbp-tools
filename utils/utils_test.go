@@ -6,45 +6,62 @@ import (
 	"testing"
 )
 
-func TestRemoveElementFromSlice(t *testing.T) {
-	slice := []string{"a", "b", "c", "d", "e"}
-	slice = RemoveIndexFromSlice(slice, 2)
-
-	if !reflect.DeepEqual(slice, []string{"a", "b", "d", "e"}) {
-		t.Errorf("Error removing element from slice")
+func evaluateResult(t *testing.T, result []string, expected []string, message string) {
+	if !reflect.DeepEqual(result, expected) {
+		fmt.Println("Result: ")
+		fmt.Println(result)
+		fmt.Println("Expected: ")
+		fmt.Println(expected)
+		t.Errorf(message)
 	}
 }
 
-func TestRemoveLastElementFromSlice(t *testing.T) {
-	slice := []string{"a", "b", "c", "d", "e"}
-	slice = RemoveIndexFromSlice(slice, 4)
-	if !reflect.DeepEqual(slice, []string{"a", "b", "c", "d"}) {
-		t.Errorf("Error removing element from slice")
+func TestComplementOfEmptySlices(t *testing.T) {
+	slice := []string{}
+	toRemove := []string{}
+	result := Complement(slice, toRemove)
+	if len(result) != 0 {
+		t.Errorf("Error computing complement where both slices are empty")
 	}
 }
 
-func TestRemoveFirstElementFromSlice(t *testing.T) {
-	slice := []string{"a", "b", "c", "d", "e"}
-	slice = RemoveIndexFromSlice(slice, 0)
-	if !reflect.DeepEqual(slice, []string{"b", "c", "d", "e"}) {
-		t.Errorf("Error removing element from slice")
+func TestComplementOfEmptySlice(t *testing.T) {
+	slice := []string{}
+	toRemove := []string{"a", "b", "c"}
+	result := Complement(slice, toRemove)
+	if len(result) != 0 {
+		t.Errorf("Error computing complement of empty slice")
 	}
 }
 
-func TestRemoveNonExistingElementFromSlice(t *testing.T) {
-	slice := []string{"a", "b", "c", "d", "e"}
-	if !reflect.DeepEqual(RemoveIndexFromSlice(slice, 5), slice) {
-		t.Errorf("Did not return original slice when index out of range")
-	}
+func TestComplementOfEmptyToRemove(t *testing.T) {
+	slice := []string{"a", "b", "c"}
+	toRemove := []string{}
+	result := Complement(slice, toRemove)
+	expected := []string{"a", "b", "c"}
+	evaluateResult(t, result, expected, "Error computing complement of slice with empty toRemove")
 }
 
-func TestRemoveElementsWithForbiddenSubstrings(t *testing.T) {
-	slice := []string{"aa", "bb", "cc", "dd", "ee"}
-	forbiddenSubstrings := []string{"c", "e"}
-	filteredSlice := RemoveElementsWithForbiddenSubstrings(slice, forbiddenSubstrings)
-	if !reflect.DeepEqual(filteredSlice, []string{"aa", "bb", "dd"}) {
-		fmt.Println(slice)
-		fmt.Println(filteredSlice)
-		t.Errorf("Error removing elements from slice")
-	}
+func TestComplementOfNonEmptySlices(t *testing.T) {
+	slice := []string{"a", "b", "c", "d", "e"}
+	toRemove := []string{"b", "d"}
+	result := Complement(slice, toRemove)
+	expected := []string{"a", "c", "e"}
+	evaluateResult(t, result, expected, "Error computing complement two non-empty slices")
+}
+
+func TestComplementOfNonEmptySlicesWithNoIntersection(t *testing.T) {
+	slice := []string{"a", "b", "c", "d", "e"}
+	toRemove := []string{"f", "g"}
+	result := Complement(slice, toRemove)
+	expected := []string{"a", "b", "c", "d", "e"}
+	evaluateResult(t, result, expected, "Error computing complement of slice with no intersection")
+}
+
+func TestComplementOfSlicesWithPartialIntersection(t *testing.T) {
+	slice := []string{"a", "b", "c", "d", "e"}
+	toRemove := []string{"c", "d", "f"}
+	result := Complement(slice, toRemove)
+	expected := []string{"a", "b", "e"}
+	evaluateResult(t, result, expected, "Error computing complement of slice with partial intersection")
 }

@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"strings"
 )
 
 type cliArgs struct {
@@ -34,27 +33,23 @@ func ParseArgs() cliArgs {
 	}
 }
 
-func RemoveIndexFromSlice(slice []string, idx int) []string {
+func Complement[T comparable](slice []T, toRemove []T) []T {
+	var complement []T
 
-	if idx < 0 || idx >= len(slice) {
-		fmt.Println("Index out of range, returning original slice")
-		return slice
-	}
-
-	return append(slice[:idx], slice[idx+1:]...)
-}
-
-func RemoveElementsWithForbiddenSubstrings(slice []string, forbiddenSubstrings []string) []string {
-	for idx, element := range slice {
-		for _, forbiddenSubstring := range forbiddenSubstrings {
-			containsSubstring := strings.Contains(element, forbiddenSubstring)
-			if containsSubstring {
-				fmt.Println("Removing " + element + " as it contains forbidden string: " + forbiddenSubstring)
-				slice = RemoveIndexFromSlice(slice, idx)
+	for _, element := range slice {
+		found := false
+		for _, remove := range toRemove {
+			if element == remove {
+				fmt.Printf("\nExcluding: %v", element)
+				found = true
 				break
 			}
 		}
-
+		if !found {
+			complement = append(complement, element)
+		}
 	}
-	return slice
+	fmt.Println("") //Tidy up the log output
+
+	return complement
 }

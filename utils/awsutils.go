@@ -9,6 +9,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	cfnTypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
@@ -46,6 +48,7 @@ func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Clie
 	complianceStatus := "PASSED"
 	recordState := "ACTIVE"
 
+	fmt.Println("Retrieving Security Hub control failures for S3.8")
 	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
 		MaxResults: &maxResults,
 		Filters: &shTypes.AwsSecurityFindingFilters{
@@ -76,42 +79,52 @@ func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Clie
 		}
 	}
 
-	fmt.Println("Found " + fmt.Sprint(len(bucketsToBlock)) + " failing buckets")
-
 	return bucketsToBlock, nil
 }
 
-func removeGuCdkBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock []string) ([]string, error) {
-	for idx, bucket := range bucketsToBlock {
-		tagging, err := s3Client.GetBucketTagging(ctx, &s3.GetBucketTaggingInput{
-			Bucket: aws.String(bucket),
-		})
-		if err == nil {
-			for _, tag := range tagging.TagSet {
-				if *tag.Key == "gu:cdk:version" {
-					fmt.Println("Skipping bucket: " + bucket + " provisioned with GuCDK")
-					bucketsToBlock = RemoveIndexFromSlice(bucketsToBlock, idx)
+func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) []string {
+
+	var bucketsInAStack []string
+
+	//list all stacks in account that are in a state other than DELETE_COMPLETE, and contain a bucket
+	stacks, _ := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{}, cloudformation.WithAPIOptions())
+
+	fmt.Println("Found " + fmt.Sprint(len(stacks.StackSummaries)) + " stacks in account. Enumerating stacks with buckets:")
+
+	for _, stack := range stacks.StackSummaries {
+		if stack.StackStatus != cfnTypes.StackStatusDeleteComplete {
+			stackResources, _ := cfnClient.ListStackResources(ctx, &cloudformation.ListStackResourcesInput{StackName: stack.StackName})
+			for _, resource := range stackResources.StackResourceSummaries {
+				var buckets []string
+				if *resource.ResourceType == "AWS::S3::Bucket" {
+					buckets = append(buckets, *resource.PhysicalResourceId)
+					bucketsInAStack = append(bucketsInAStack, *resource.PhysicalResourceId)
+				}
+				if len(buckets) > 0 {
+					fmt.Printf("\nStack: %s - Buckets: %v", *stack.StackName, buckets)
 				}
 			}
 		}
 	}
+	fmt.Println("") //Tidy up the log output
 
-	fmt.Println("Found " + fmt.Sprint(len(bucketsToBlock)) + " buckets not provisioned with GuCDK")
-	return bucketsToBlock, nil
+	return bucketsInAStack
 }
 
-func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client) ([]string, error) {
+func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client) ([]string, error) {
 	failingBuckets, err := findFailingBuckets(ctx, securityHubClient)
 	if err != nil {
 		return nil, err
 	}
-	failingBuckets, err = removeGuCdkBuckets(ctx, s3Client, failingBuckets)
-	if err != nil {
-		return nil, err
-	}
 
-	failingBuckets = RemoveElementsWithForbiddenSubstrings(failingBuckets, []string{"cf"})
-	return failingBuckets, nil
+	failingBucketCount := len(failingBuckets)
+	bucketsInStacks := listBucketsInStacks(ctx, cfnClient)
+	bucketsToBlock := Complement(failingBuckets, bucketsInStacks)
+	bucketsToBlockCount := len(bucketsToBlock)
+	bucketsToSkipCount := failingBucketCount - bucketsToBlockCount
+
+	fmt.Println("Found", failingBucketCount, "failing buckets, of which,", bucketsToSkipCount, "will be skipped, to avoid stack drift")
+	return bucketsToBlock, nil
 
 }
 
