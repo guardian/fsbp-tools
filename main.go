@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -21,7 +20,6 @@ func main() {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
-	fmt.Println("Retrieving Security Hub control failures for S3.8")
 	securityHubClient := securityhub.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
 	cfnClient := cloudformation.NewFromConfig(cfg)

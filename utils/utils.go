@@ -33,7 +33,7 @@ func ParseArgs() cliArgs {
 	}
 }
 
-func Complement[T comparable](slice []T, toRemove []T) []T {
+func Complement[T comparable](slice, toRemove []T) []T {
 	var complement []T
 
 	for _, element := range slice {

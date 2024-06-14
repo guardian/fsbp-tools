@@ -85,10 +85,7 @@ func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Clie
 func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) []string {
 
 	var bucketsInAStack []string
-
-	//list all stacks in account that are in a state other than DELETE_COMPLETE, and contain a bucket
-	stacks, _ := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{}, cloudformation.WithAPIOptions())
-
+	stacks, _ := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{})
 	fmt.Println("Found " + fmt.Sprint(len(stacks.StackSummaries)) + " stacks in account. Enumerating stacks with buckets:")
 
 	for _, stack := range stacks.StackSummaries {
