@@ -25,7 +25,7 @@ func main() {
 	s3Client := s3.NewFromConfig(cfg)
 	bucketsToBlock, err := utils.FindBucketsToBlock(ctx, securityHubClient, s3Client)
 	if err != nil {
-		log.Fatalf("Error removing GuCDK provisioned buckets: %v", err)
+		log.Fatalf("Error working out which buckets need blocking: %v", err)
 	}
 
 	utils.BlockBuckets(ctx, s3Client, bucketsToBlock, args.DryRun)
