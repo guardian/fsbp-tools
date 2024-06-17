@@ -65,3 +65,12 @@ func TestComplementOfSlicesWithPartialIntersection(t *testing.T) {
 	expected := []string{"a", "b", "e"}
 	evaluateResult(t, result, expected, "Error computing complement of slice with partial intersection")
 }
+
+func TestComplementOfIdenticalSlices(t *testing.T) {
+	slice := []string{"a", "b", "c"}
+	toRemove := []string{"a", "b", "c"}
+	result := Complement(slice, toRemove)
+	if len(result) != 0 {
+		t.Errorf("Error computing complement of identical slices")
+	}
+}

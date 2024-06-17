@@ -33,20 +33,21 @@ func ParseArgs() cliArgs {
 	}
 }
 
-func Complement[T comparable](slice, toRemove []T) []T {
+func Complement[T comparable](slice []T, toRemove []T) []T {
 	var complement []T
 
+	//put toRemove into a slice in a map for faster lookup
+	removeMap := make(map[T]bool)
+	for _, remove := range toRemove {
+		removeMap[remove] = true
+	}
+
 	for _, element := range slice {
-		found := false
-		for _, remove := range toRemove {
-			if element == remove {
-				fmt.Printf("\nExcluding: %v", element)
-				found = true
-				break
-			}
-		}
+		_, found := removeMap[element]
 		if !found {
 			complement = append(complement, element)
+		} else {
+			fmt.Printf("\nExcluding: %v", element)
 		}
 	}
 	fmt.Println("") //Tidy up the log output
