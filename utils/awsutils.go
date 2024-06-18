@@ -123,7 +123,7 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 	bucketsToBlockCount := len(bucketsToBlock)
 	bucketsToSkipCount := failingBucketCount - bucketsToBlockCount
 
-	fmt.Println("\nBlocking the following buckets:\n")
+	fmt.Println("\nBlocking the following buckets:")
 	for idx, bucket := range bucketsToBlock {
 		fmt.Println(idx+1, bucket)
 	}
