@@ -43,15 +43,14 @@ func LoadDefaultConfig(ctx context.Context, profile string, region string) (aws.
 	return cfg, nil
 }
 
-func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Client) ([]string, error) {
-	maxResults := int32(100)
+func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Client, bucketCount int32) ([]string, error) {
 	controlId := "S3.8"
 	complianceStatus := "PASSED"
 	recordState := "ACTIVE"
 
 	fmt.Println("Retrieving Security Hub control failures for S3.8")
 	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
-		MaxResults: &maxResults,
+		MaxResults: &bucketCount,
 		Filters: &shTypes.AwsSecurityFindingFilters{
 			ComplianceSecurityControlId: []shTypes.StringFilter{{
 				Value:      &controlId,
@@ -109,8 +108,8 @@ func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) 
 	return bucketsInAStack
 }
 
-func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client) ([]string, error) {
-	failingBuckets, err := findFailingBuckets(ctx, securityHubClient)
+func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client, bucketCount int32) ([]string, error) {
+	failingBuckets, err := findFailingBuckets(ctx, securityHubClient, bucketCount)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +128,7 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 		fmt.Println(idx+1, bucket)
 	}
 
-	fmt.Println("Of", failingBucketCount, "failing buckets. ", bucketsToSkipCount, "will be skipped, to avoid stack drift")
+	fmt.Println(failingBucketCount, "failing buckets found. ", bucketsToSkipCount, "will be skipped, to avoid stack drift.")
 	return bucketsToBlock, nil
 
 }

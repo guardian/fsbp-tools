@@ -7,15 +7,17 @@ import (
 )
 
 type cliArgs struct {
-	Profile string
-	Region  string
-	DryRun  bool
+	Profile     string
+	Region      string
+	DryRun      bool
+	BucketCount int32
 }
 
 func ParseArgs() cliArgs {
 	profile := flag.String("profile", "", "The name of the profile to use")
 	region := flag.String("region", "", "The region of the bucket")
 	dryRun := flag.Bool("dry-run", true, "Dry run mode")
+	bucketCount := flag.Int("max", 100, "The maximum number of buckets to attempt to process")
 	flag.Parse()
 
 	if *profile == "" {
@@ -26,10 +28,15 @@ func ParseArgs() cliArgs {
 		log.Fatal("Please provide a region")
 	}
 
+	if *bucketCount < 1 || *bucketCount > 100 {
+		log.Fatal("Please provide a max between 1 and 100")
+	}
+
 	return cliArgs{
-		Profile: *profile,
-		Region:  *region,
-		DryRun:  *dryRun,
+		Profile:     *profile,
+		Region:      *region,
+		DryRun:      *dryRun,
+		BucketCount: int32(*bucketCount),
 	}
 }
 

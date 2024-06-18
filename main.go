@@ -23,7 +23,7 @@ func main() {
 	securityHubClient := securityhub.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
 	cfnClient := cloudformation.NewFromConfig(cfg)
-	bucketsToBlock, err := utils.FindBucketsToBlock(ctx, securityHubClient, s3Client, cfnClient)
+	bucketsToBlock, err := utils.FindBucketsToBlock(ctx, securityHubClient, s3Client, cfnClient, args.BucketCount)
 	if err != nil {
 		log.Fatalf("Error working out which buckets need blocking: %v", err)
 	}
