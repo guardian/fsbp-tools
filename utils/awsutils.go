@@ -16,7 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-func validateCredentials(stsClient *sts.Client, ctx context.Context, profile string) (*sts.GetCallerIdentityOutput, error) {
+func validateCredentials(ctx context.Context, stsClient *sts.Client, profile string) (*sts.GetCallerIdentityOutput, error) {
 	resp, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return resp, errors.New("Could not find valid credentials for profile: " + profile)
@@ -32,7 +32,7 @@ func LoadDefaultConfig(ctx context.Context, profile string, region string) (aws.
 	}
 
 	stsClient := sts.NewFromConfig(cfg)
-	_, err = validateCredentials(stsClient, ctx, profile)
+	_, err = validateCredentials(ctx, stsClient, profile)
 	if err != nil {
 		return cfg, err
 	}
