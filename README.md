@@ -13,7 +13,7 @@ Bucket blocker takes up to 3 flags:
 Currently, there isn't a process to build the binary. You can run the application using the following command from the root of the repository
 
 ```bash
-go run src/bucketblocker/main.go \
+go run main.go \
 -profile <profile_name> \
 -region <region>
 ```
