@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/guardian/bucketblocker/utils"
@@ -20,10 +20,10 @@ func main() {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
-	fmt.Println("Retrieving Security Hub control failures for S3.8")
 	securityHubClient := securityhub.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
-	bucketsToBlock, err := utils.FindBucketsToBlock(ctx, securityHubClient, s3Client)
+	cfnClient := cloudformation.NewFromConfig(cfg)
+	bucketsToBlock, err := utils.FindBucketsToBlock(ctx, securityHubClient, s3Client, cfnClient)
 	if err != nil {
 		log.Fatalf("Error working out which buckets need blocking: %v", err)
 	}

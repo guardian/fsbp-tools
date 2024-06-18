@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"errors"
 	"flag"
+	"fmt"
 	"log"
 )
 
@@ -33,11 +33,24 @@ func ParseArgs() cliArgs {
 	}
 }
 
-func RemoveIndexFromSlice(slice []string, idx int) ([]string, error) {
+func Complement[T comparable](slice []T, toRemove []T) []T {
+	var complement []T
 
-	if idx < 0 || idx >= len(slice) {
-		return slice, errors.New("index out of range")
+	//put toRemove into a slice in a map for faster lookup
+	removeMap := make(map[T]bool)
+	for _, remove := range toRemove {
+		removeMap[remove] = true
 	}
 
-	return append(slice[:idx], slice[idx+1:]...), nil
+	for _, element := range slice {
+		_, found := removeMap[element]
+		if !found {
+			complement = append(complement, element)
+		} else {
+			fmt.Printf("\nExcluding: %v", element)
+		}
+	}
+	fmt.Println("") //Tidy up the log output
+
+	return complement
 }
