@@ -115,8 +115,7 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 	}
 
 	failingBucketCount := len(failingBuckets)
-	excludedBuckets := listBucketsInStacks(ctx, cfnClient)
-	excludedBuckets = append(excludedBuckets, exclusions...)
+	excludedBuckets := append(listBucketsInStacks(ctx, cfnClient), exclusions...)
 
 	fmt.Println("\nBuckets to exclude:")
 	bucketsToBlock := Complement(failingBuckets, excludedBuckets)
