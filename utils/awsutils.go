@@ -1,11 +1,12 @@
 package utils
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -42,15 +43,14 @@ func LoadDefaultConfig(ctx context.Context, profile string, region string) (aws.
 	return cfg, nil
 }
 
-func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Client) ([]string, error) {
-	maxResults := int32(100)
+func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Client, bucketCount int32) ([]string, error) {
 	controlId := "S3.8"
 	complianceStatus := "PASSED"
 	recordState := "ACTIVE"
 
 	fmt.Println("Retrieving Security Hub control failures for S3.8")
 	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
-		MaxResults: &maxResults,
+		MaxResults: &bucketCount,
 		Filters: &shTypes.AwsSecurityFindingFilters{
 			ComplianceSecurityControlId: []shTypes.StringFilter{{
 				Value:      &controlId,
@@ -108,19 +108,27 @@ func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) 
 	return bucketsInAStack
 }
 
-func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client) ([]string, error) {
-	failingBuckets, err := findFailingBuckets(ctx, securityHubClient)
+func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client, bucketCount int32) ([]string, error) {
+	failingBuckets, err := findFailingBuckets(ctx, securityHubClient, bucketCount)
 	if err != nil {
 		return nil, err
 	}
 
 	failingBucketCount := len(failingBuckets)
 	bucketsInStacks := listBucketsInStacks(ctx, cfnClient)
+
+	fmt.Println("\nBuckets to exclude:")
 	bucketsToBlock := Complement(failingBuckets, bucketsInStacks)
+
 	bucketsToBlockCount := len(bucketsToBlock)
 	bucketsToSkipCount := failingBucketCount - bucketsToBlockCount
 
-	fmt.Println("Found", failingBucketCount, "failing buckets, of which,", bucketsToSkipCount, "will be skipped, to avoid stack drift")
+	fmt.Println("\nBlocking the following buckets:")
+	for idx, bucket := range bucketsToBlock {
+		fmt.Println(idx+1, bucket)
+	}
+
+	fmt.Println(failingBucketCount, "failing buckets found. ", bucketsToSkipCount, "will be skipped, to avoid stack drift.")
 	return bucketsToBlock, nil
 
 }
@@ -146,13 +154,23 @@ func BlockBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock []str
 	if dryRun {
 		fmt.Println("Dry run mode enabled. Skipping blocking public access for buckets")
 	} else {
-		fmt.Println("Blocking public access for buckets in 5 seconds. Press CTRL+C to cancel.")
-		time.Sleep(5 * time.Second)
-		for _, name := range bucketsToBlock {
-			_, err := blockPublicAccess(ctx, s3Client, name)
-			if err != nil {
-				fmt.Println("Error blocking public access: " + err.Error())
+		buf := bufio.NewReader(os.Stdin)
+		fmt.Println("\nPress 'y', to confirm, and enter to continue. Otherwise, hit enter to exit.")
+		fmt.Print("> ")
+		input, err := buf.ReadBytes('\n')
+		if err != nil {
+			fmt.Println("Error reading input: " + err.Error())
+		}
+		if strings.ToLower(strings.TrimSpace(string(input))) == "y" {
+			for _, name := range bucketsToBlock {
+				_, err := blockPublicAccess(ctx, s3Client, name)
+				if err != nil {
+					fmt.Println("Error blocking public access: " + err.Error())
+				}
 			}
+			fmt.Println("Public access blocked for all buckets. Please note it may take 24 hours for SecurityHub to update.")
+		} else {
+			fmt.Println("Exiting without blocking public access")
 		}
 	}
 }
