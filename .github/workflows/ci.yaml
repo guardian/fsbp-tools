@@ -61,4 +61,5 @@ jobs:
     - name: Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npx semantic-release
+      # See https://github.com/semantic-release/semantic-release/blob/master/docs/support/node-version.md  
+      run: npx -p node@v20-lts -c "npx semantic-release"
