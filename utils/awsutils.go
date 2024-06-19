@@ -108,17 +108,18 @@ func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) 
 	return bucketsInAStack
 }
 
-func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client, bucketCount int32) ([]string, error) {
+func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client, bucketCount int32, exclusions []string) ([]string, error) {
 	failingBuckets, err := findFailingBuckets(ctx, securityHubClient, bucketCount)
 	if err != nil {
 		return nil, err
 	}
 
 	failingBucketCount := len(failingBuckets)
-	bucketsInStacks := listBucketsInStacks(ctx, cfnClient)
+	excludedBuckets := listBucketsInStacks(ctx, cfnClient)
+	excludedBuckets = append(excludedBuckets, exclusions...)
 
 	fmt.Println("\nBuckets to exclude:")
-	bucketsToBlock := Complement(failingBuckets, bucketsInStacks)
+	bucketsToBlock := Complement(failingBuckets, excludedBuckets)
 
 	bucketsToBlockCount := len(bucketsToBlock)
 	bucketsToSkipCount := failingBucketCount - bucketsToBlockCount

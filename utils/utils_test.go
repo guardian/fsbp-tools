@@ -75,6 +75,21 @@ func TestComplementOfIdenticalSlices(t *testing.T) {
 	}
 }
 
+func TestComplementOfDuplicates(t *testing.T) {
+	slice := []string{"a", "b", "c"}
+	toRemove := []string{"c", "c"}
+	result := Complement(slice, toRemove)
+	expected := []string{"a", "b"}
+	evaluateResult(t, result, expected, "Error computing complement when slice to remove contains duplicates")
+}
+
+func TestSplittingTrimmingEmptyString(t *testing.T) {
+	input := ""
+	result := SplitAndTrim(input)
+	expected := []string{}
+	evaluateResult(t, result, expected, "Error splitting/trimming empty string")
+}
+
 func TestStringSplit(t *testing.T) {
 	input := "a,b,c"
 	result := SplitAndTrim(input)

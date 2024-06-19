@@ -46,6 +46,9 @@ func ParseArgs() cliArgs {
 }
 
 func SplitAndTrim(str string) []string {
+	if str == "" {
+		return []string{}
+	}
 	split := strings.Split(str, ",")
 	var trimmed []string
 	for _, s := range split {
