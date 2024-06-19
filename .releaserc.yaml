@@ -6,12 +6,12 @@ plugins:
 - "@semantic-release/commit-analyzer"
 - "@semantic-release/release-notes-generator"
 - "@semantic-release/github"
-  - assets:
-    - path: bin/bucketblocker-linux-amd64
-      label: linux-amd64
-    - path: bin/bucketblocker-linux-arm64
-      label: linux-arm64
-    - path: bin/bucketblocker-darwin-amd64
-      label: darwin-amd64
-    - path: bin/bucketblocker-darwin-arm64
-      label: darwin-arm64
+- assets:
+  - path: bin/bucketblocker-linux-amd64
+    label: linux-amd64
+  - path: bin/bucketblocker-linux-arm64
+    label: linux-arm64
+  - path: bin/bucketblocker-darwin-amd64
+    label: darwin-amd64
+  - path: bin/bucketblocker-darwin-arm64
+    label: darwin-arm64
