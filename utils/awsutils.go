@@ -115,7 +115,8 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 	}
 
 	failingBucketCount := len(failingBuckets)
-	excludedBuckets := append(listBucketsInStacks(ctx, cfnClient), exclusions...)
+	bucketsInStacks := listBucketsInStacks(ctx, cfnClient)
+	excludedBuckets := append(bucketsInStacks, exclusions...)
 
 	fmt.Println("\nBuckets to exclude:")
 	bucketsToBlock := Complement(failingBuckets, excludedBuckets)
@@ -128,7 +129,11 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 		fmt.Println(idx+1, bucket)
 	}
 
-	fmt.Println(failingBucketCount, "failing buckets found. ", bucketsToSkipCount, "will be skipped, to avoid stack drift.")
+	exclusionsCount := len(exclusions)
+	stackDriftBucketCount := bucketsToSkipCount - exclusionsCount
+
+	fmt.Print("\n")
+	fmt.Println(failingBucketCount, "failing buckets found.", stackDriftBucketCount, "will be skipped to avoid stack drift and", exclusionsCount, "have been excluded.")
 	return bucketsToBlock, nil
 
 }
@@ -152,7 +157,8 @@ func blockPublicAccess(ctx context.Context, s3Client *s3.Client, name string) (*
 
 func BlockBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock []string, dryRun bool) {
 	if dryRun {
-		fmt.Println("Dry run mode enabled. Skipping blocking public access for buckets")
+		fmt.Println("\nDry run mode enabled - skipping blocking public access for buckets.")
+		fmt.Println("Re-run with flag --dry-run=false to block access.")
 	} else {
 		buf := bufio.NewReader(os.Stdin)
 		fmt.Println("\nPress 'y', to confirm, and enter to continue. Otherwise, hit enter to exit.")
