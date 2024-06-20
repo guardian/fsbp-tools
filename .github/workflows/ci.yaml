@@ -43,8 +43,10 @@ jobs:
 
   release:
     name: Release
+    permissions:
+      contents: write
+      packages: write
     needs: [test, build]
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
