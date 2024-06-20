@@ -61,12 +61,15 @@ jobs:
         name: artifact
         path: bin
 
-    - name: Setup Node
-      uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
-      with: 
-        node-version: '20.14.0'
-    - name: Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # See https://github.com/semantic-release/semantic-release/blob/master/docs/support/node-version.md  
-      run: npx semantic-release
+    - name: View filesystem
+      run: tree
+
+    # - name: Setup Node
+    #   uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+    #   with: 
+    #     node-version: '20.14.0'
+    # - name: Release
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   # See https://github.com/semantic-release/semantic-release/blob/master/docs/support/node-version.md  
+    #   run: npx semantic-release
