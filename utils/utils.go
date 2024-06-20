@@ -45,19 +45,6 @@ func ParseArgs() cliArgs {
 	}
 }
 
-func SplitAndTrim(str string) []string {
-	if str == "" {
-		return []string{}
-	}
-	split := strings.Split(str, ",")
-	var trimmed []string
-	for _, s := range split {
-		s := strings.Trim(s, " ")
-		trimmed = append(trimmed, s)
-	}
-	return trimmed
-}
-
 func Complement[T comparable](slice []T, toRemove []T) []T {
 	var complement []T
 
@@ -78,4 +65,14 @@ func Complement[T comparable](slice []T, toRemove []T) []T {
 	fmt.Println("") //Tidy up the log output
 
 	return complement
+}
+
+func SplitAndTrim(str string) []string {
+	split := strings.Split(str, ",")
+	var trimmed []string
+	for _, s := range split {
+		s := strings.Trim(s, " ")
+		trimmed = append(trimmed, s)
+	}
+	return Complement(trimmed, []string{""})
 }

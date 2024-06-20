@@ -86,8 +86,9 @@ func TestComplementOfDuplicates(t *testing.T) {
 func TestSplittingTrimmingEmptyString(t *testing.T) {
 	input := ""
 	result := SplitAndTrim(input)
-	expected := []string{}
-	evaluateResult(t, result, expected, "Error splitting/trimming empty string")
+	if len(result) != 0 {
+		t.Errorf("Error splitting/trimming empty string")
+	}
 }
 
 func TestStringSplit(t *testing.T) {
@@ -116,4 +117,11 @@ func TestStringSplitAndTrimSpecialChars(t *testing.T) {
 	result := SplitAndTrim(input)
 	expected := []string{"--a", ".@/b", "c123"}
 	evaluateResult(t, result, expected, "Error splitting and trimming string")
+}
+
+func TestSplittingStringWithLeadingAndTrailingComma(t *testing.T) {
+	input := ",a,b,c,"
+	result := SplitAndTrim(input)
+	expected := []string{"a", "b", "c"}
+	evaluateResult(t, result, expected, "Error splitting string with leading comma")
 }
