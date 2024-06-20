@@ -123,5 +123,5 @@ func TestSplittingStringWithLeadingAndTrailingComma(t *testing.T) {
 	input := ",a,b,c,"
 	result := SplitAndTrim(input)
 	expected := []string{"a", "b", "c"}
-	evaluateResult(t, result, expected, "Error splitting string with leading comma")
+	evaluateResult(t, result, expected, "Error splitting string with leading and trailing comma")
 }
