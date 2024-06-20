@@ -115,8 +115,7 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 	}
 
 	failingBucketCount := len(failingBuckets)
-	bucketsInStacks := listBucketsInStacks(ctx, cfnClient)
-	excludedBuckets := append(bucketsInStacks, exclusions...)
+	excludedBuckets := append(listBucketsInStacks(ctx, cfnClient), exclusions...)
 
 	fmt.Println("\nBuckets to exclude:")
 	bucketsToBlock := Complement(failingBuckets, excludedBuckets)
@@ -129,11 +128,9 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 		fmt.Println(idx+1, bucket)
 	}
 
-	exclusionsCount := len(exclusions)
-	stackDriftBucketCount := bucketsToSkipCount - exclusionsCount
-
 	fmt.Print("\n")
-	fmt.Println(failingBucketCount, "failing buckets found.", stackDriftBucketCount, "will be skipped to avoid stack drift and", exclusionsCount, "have been excluded.")
+	fmt.Println(failingBucketCount, "failing buckets found.")
+	fmt.Println(bucketsToBlockCount, "to block, and", bucketsToSkipCount, "to skip.")
 	return bucketsToBlock, nil
 
 }
