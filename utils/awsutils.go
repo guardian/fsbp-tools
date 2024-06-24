@@ -108,17 +108,17 @@ func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) 
 	return bucketsInAStack
 }
 
-func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client, bucketCount int32) ([]string, error) {
+func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client, bucketCount int32, exclusions []string) ([]string, error) {
 	failingBuckets, err := findFailingBuckets(ctx, securityHubClient, bucketCount)
 	if err != nil {
 		return nil, err
 	}
 
 	failingBucketCount := len(failingBuckets)
-	bucketsInStacks := listBucketsInStacks(ctx, cfnClient)
+	excludedBuckets := append(listBucketsInStacks(ctx, cfnClient), exclusions...)
 
 	fmt.Println("\nBuckets to exclude:")
-	bucketsToBlock := Complement(failingBuckets, bucketsInStacks)
+	bucketsToBlock := Complement(failingBuckets, excludedBuckets)
 
 	bucketsToBlockCount := len(bucketsToBlock)
 	bucketsToSkipCount := failingBucketCount - bucketsToBlockCount
@@ -128,7 +128,9 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 		fmt.Println(idx+1, bucket)
 	}
 
-	fmt.Println(failingBucketCount, "failing buckets found. ", bucketsToSkipCount, "will be skipped, to avoid stack drift.")
+	fmt.Print("\n")
+	fmt.Println(failingBucketCount, "failing buckets found.")
+	fmt.Println(bucketsToBlockCount, "to block, and", bucketsToSkipCount, "to skip.")
 	return bucketsToBlock, nil
 
 }
@@ -152,7 +154,8 @@ func blockPublicAccess(ctx context.Context, s3Client *s3.Client, name string) (*
 
 func BlockBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock []string, dryRun bool) {
 	if dryRun {
-		fmt.Println("Dry run mode enabled. Skipping blocking public access for buckets")
+		fmt.Println("\nDry run mode enabled - skipping blocking public access for buckets.")
+		fmt.Println("Re-run with flag --dry-run=false to block access.")
 	} else {
 		buf := bufio.NewReader(os.Stdin)
 		fmt.Println("\nPress 'y', to confirm, and enter to continue. Otherwise, hit enter to exit.")

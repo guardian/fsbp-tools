@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"strings"
 )
 
 type cliArgs struct {
@@ -11,6 +12,7 @@ type cliArgs struct {
 	Region      string
 	DryRun      bool
 	BucketCount int32
+	Exclusions  []string
 }
 
 func ParseArgs() cliArgs {
@@ -18,6 +20,8 @@ func ParseArgs() cliArgs {
 	region := flag.String("region", "", "The region of the bucket")
 	dryRun := flag.Bool("dry-run", true, "Dry run mode")
 	bucketCount := flag.Int("max", 100, "The maximum number of buckets to attempt to process")
+	exclusions := flag.String("exclusions", "", "Comma-separated list of buckets to skip")
+
 	flag.Parse()
 
 	if *profile == "" {
@@ -37,6 +41,7 @@ func ParseArgs() cliArgs {
 		Region:      *region,
 		DryRun:      *dryRun,
 		BucketCount: int32(*bucketCount),
+		Exclusions:  SplitAndTrim(*exclusions),
 	}
 }
 
@@ -60,4 +65,14 @@ func Complement[T comparable](slice []T, toRemove []T) []T {
 	fmt.Println("") //Tidy up the log output
 
 	return complement
+}
+
+func SplitAndTrim(str string) []string {
+	split := strings.Split(str, ",")
+	var trimmed []string
+	for _, s := range split {
+		s := strings.Trim(s, " ")
+		trimmed = append(trimmed, s)
+	}
+	return Complement(trimmed, []string{""})
 }
