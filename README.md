@@ -18,7 +18,7 @@ You will also need credentials for the relevant AWS account from Janus.
 
 ## Running the binary
 
-This app runs as a binary executable. on both intel and Apple Silicon architectures. To run the binary, you can either build it from source or download it from the releases page. Apple Silicon users should download the `darwin-arm64` binary, while Intel users should download the `darwin-amd64` binary.
+This app runs as a binary executable on both intel and Apple Silicon architectures. To run the binary, you can either build it from source or download it from the releases page. Apple Silicon users should download the `darwin-arm64` binary, while Intel users should download the `darwin-amd64` binary.
 
 1. **Recommended**: `wget https://github.com/guardian/bucket-blocker/releases/download/v<VERSION>/bucketblocker-<ARCHITECTURE>`
    into a directory of your choice. You can see a list of releases
