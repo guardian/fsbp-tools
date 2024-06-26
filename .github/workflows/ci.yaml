@@ -60,7 +60,7 @@ jobs:
       contents: write
       packages: write
       issues: write
-    needs: [test, build]
+    needs: [test, build, enforce-dashes]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
