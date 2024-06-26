@@ -14,7 +14,7 @@ SCRIPT_PATH=$( cd "$(dirname "$0")" ; pwd -P )
 
 pushd "$SCRIPT_PATH/.."
 
-APP=bucketblocker
+APP=bucket-blocker
 
 # We only build for Mac OS
 ARCHITECTURES=("arm64" "amd64")

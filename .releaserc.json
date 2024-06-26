@@ -8,11 +8,11 @@
       {
         "assets": [
           {
-            "path": "release/darwin-amd64/bucketblocker_darwin-amd64.tar.gz",
+            "path": "release/darwin-amd64/bucket-blocker_darwin-amd64.tar.gz",
             "label": "darwin-amd64"
           },
           {
-            "path": "release/darwin-arm64/bucketblocker_darwin-arm64.tar.gz",
+            "path": "release/darwin-arm64/bucket-blocker_darwin-arm64.tar.gz",
             "label": "darwin-arm64"
           }
         ]

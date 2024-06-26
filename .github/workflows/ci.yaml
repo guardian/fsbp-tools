@@ -1,7 +1,7 @@
 name: ci
 
 env:
-  APP: bucketblocker
+  APP: bucket-blocker
   GO_VERSION: 1.22.1
 
 on:

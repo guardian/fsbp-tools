@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	"github.com/guardian/bucketblocker/utils"
+	"github.com/guardian/bucket-blocker/utils"
 )
 
 func main() {
