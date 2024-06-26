@@ -9,7 +9,7 @@ pushd () {
 popd () {
     command popd > /dev/null
 }
-# bucketblocker
+
 SCRIPT_PATH=$( cd "$(dirname "$0")" ; pwd -P )
 pushd "$SCRIPT_PATH/.."
 
