@@ -1,4 +1,4 @@
-module github.com/guardian/bucketblocker
+module github.com/guardian/bucket-blocker
 
 go 1.22.1
 
