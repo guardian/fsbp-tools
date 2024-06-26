@@ -25,10 +25,11 @@ for ARCH in "${ARCHITECTURES[@]}"; do
     GOOS=darwin GOARCH=$ARCH go build -o "$APP" main.go
 
     mkdir -p "release/darwin-$ARCH"
-    pushd "release/darwin-$ARCH"
 
     TAR_NAME="${APP}_darwin-${ARCH}.tar.gz"
-    tar -czf "$TAR_NAME" "../../$APP"
+    tar -czf "release/darwin-${ARCH}/${TAR_NAME}" "$APP"
+
+    pushd "release/darwin-$ARCH"
 
     SHA256_SUM=$(shasum -a 256 "$TAR_NAME" | awk '{ print $1 }')
     echo "The following is the SHA256 sum for the '$TAR_NAME' bundle:"
