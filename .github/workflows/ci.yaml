@@ -40,15 +40,7 @@ jobs:
 
       - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
-          path: release/${{ env.APP }}-*
-
-      - name: Ouput SHA 256
-        run: |
-          echo "## Bucket Blocker release SHAs" >> $GITHUB_STEP_SUMMARY
-          echo "### ARM64" >> $GITHUB_STEP_SUMMARY 
-          echo "${{ env.SHA256_SUM_arm64 }}" >> $GITHUB_STEP_SUMMARY 
-          echo "### X86" >> $GITHUB_STEP_SUMMARY 
-          echo "${{ env.SHA256_SUM_amd64 }}" >> $GITHUB_STEP_SUMMARY
+          path: release/**/${{ env.APP }}-*
 
   release:
     name: Release

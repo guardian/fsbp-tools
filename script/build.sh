@@ -36,7 +36,9 @@ for ARCH in "${ARCHITECTURES[@]}"; do
 
     popd
 
-    if [ -f "$GITHUB_ENV" ]; then
-        echo "SHA256_SUM_$ARCH=$SHA256_SUM" >> "$GITHUB_ENV"
+    ## Create build summary if running in Github Actions
+    if [ -f "$GITHUB_STEP_SUMMARY" ]; then
+        echo "### Darwin ${ARCH} SHA256 sum" >> $GITHUB_STEP_SUMMARY 
+        echo "$SHA256_SUM" >> $GITHUB_STEP_SUMMARY 
     fi
 done
