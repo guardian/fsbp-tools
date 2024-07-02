@@ -152,11 +152,8 @@ func blockPublicAccess(ctx context.Context, s3Client *s3.Client, name string) (*
 	return resp, nil
 }
 
-func BlockBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock []string, dryRun bool) {
-	if dryRun {
-		fmt.Println("\nDry run mode enabled - skipping blocking public access for buckets.")
-		fmt.Println("Re-run with flag --dry-run=false to block access.")
-	} else {
+func BlockBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock []string, execute bool) {
+	if execute {
 		buf := bufio.NewReader(os.Stdin)
 		fmt.Println("\nPress 'y', to confirm, and enter to continue. Otherwise, hit enter to exit.")
 		fmt.Print("> ")
@@ -173,7 +170,10 @@ func BlockBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock []str
 			}
 			fmt.Println("Public access blocked for all buckets. Please note it may take 24 hours for SecurityHub to update.")
 		} else {
-			fmt.Println("Exiting without blocking public access")
+			fmt.Println("Exiting without blocking public access.")
 		}
+	} else {
+		fmt.Println("\nSkipping execution.")
+		fmt.Println("Re-run with flag -execute to block access.")
 	}
 }
