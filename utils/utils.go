@@ -10,7 +10,7 @@ import (
 type cliArgs struct {
 	Profile     string
 	Region      string
-	DryRun      bool
+	Execute     bool
 	BucketCount int32
 	Exclusions  []string
 }
@@ -18,7 +18,7 @@ type cliArgs struct {
 func ParseArgs() cliArgs {
 	profile := flag.String("profile", "", "The name of the profile to use")
 	region := flag.String("region", "", "The region of the bucket")
-	dryRun := flag.Bool("dry-run", true, "Dry run mode")
+	execute := flag.Bool("execute", false, "Execute the block operation")
 	bucketCount := flag.Int("max", 100, "The maximum number of buckets to attempt to process")
 	exclusions := flag.String("exclusions", "", "Comma-separated list of buckets to skip")
 
@@ -39,7 +39,7 @@ func ParseArgs() cliArgs {
 	return cliArgs{
 		Profile:     *profile,
 		Region:      *region,
-		DryRun:      *dryRun,
+		Execute:     *execute,
 		BucketCount: int32(*bucketCount),
 		Exclusions:  SplitAndTrim(*exclusions),
 	}

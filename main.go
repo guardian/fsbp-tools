@@ -28,5 +28,5 @@ func main() {
 		log.Fatalf("Error working out which buckets need blocking: %v", err)
 	}
 
-	utils.BlockBuckets(ctx, s3Client, bucketsToBlock, args.DryRun)
+	utils.BlockBuckets(ctx, s3Client, bucketsToBlock, args.Execute)
 }

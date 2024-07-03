@@ -8,7 +8,8 @@ Bucket blocker takes up to 3 flags:
 
 - **region**: _Required._ The region where the bucket is located.
 
-- **dry-run**: _Optional._ Defaults to true, meaning no operation will be performed.
+- **execute**: _Optional._ Takes no value. If present, it will ask the user to confirm, then block the buckets. If not, it will only print
+  the buckets that would have been blocked.
 
 - **exclusions**: _Optional._ Comma-delimited list of buckets to exclude from blocking.
 
@@ -45,7 +46,7 @@ While developing locally, you can test the application using the following
 command from the root of the repository, without needing to build the binary:
 
 ```bash
-go run main.go -profile=<PROFILE> -region=<REGION> [OPTIONAL_FLAGS]
+go run main.go -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 ```
 
 ## Releasing to brew
