@@ -105,10 +105,10 @@ func getAllStackSummaries(ctx context.Context, cfnClient *cloudformation.Client)
 	return allStackSummaries, nil
 }
 
-func findBucketsInStack(stackResources *cloudformation.ListStackResourcesOutput, stackName string) ([]string, error) {
+func FindBucketsInStack(summaries []cfnTypes.StackResourceSummary, stackName string) []string {
 
 	var buckets []string
-	for _, resource := range stackResources.StackResourceSummaries {
+	for _, resource := range summaries {
 		if *resource.ResourceType == "AWS::S3::Bucket" {
 			buckets = append(buckets, *resource.PhysicalResourceId)
 		}
@@ -116,7 +116,28 @@ func findBucketsInStack(stackResources *cloudformation.ListStackResourcesOutput,
 	if len(buckets) > 0 {
 		fmt.Printf("\nStack: %s - Buckets: %v", stackName, buckets)
 	}
-	return buckets, nil
+	return buckets
+}
+
+func getAllStackResources(ctx context.Context, cfnClient *cloudformation.Client, stackName string) ([]cfnTypes.StackResourceSummary, error) {
+	var allStackResources []cfnTypes.StackResourceSummary
+
+	firstResources, err := cfnClient.ListStackResources(ctx, &cloudformation.ListStackResourcesInput{StackName: &stackName})
+	if err != nil {
+		return nil, err
+	}
+	allStackResources = append(allStackResources, firstResources.StackResourceSummaries...)
+
+	var nextToken = firstResources.NextToken
+	for nextToken != nil {
+		resources, err := cfnClient.ListStackResources(ctx, &cloudformation.ListStackResourcesInput{StackName: &stackName, NextToken: nextToken})
+		if err != nil {
+			return nil, err
+		}
+		allStackResources = append(allStackResources, resources.StackResourceSummaries...)
+		nextToken = resources.NextToken
+	}
+	return allStackResources, nil
 }
 
 func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) []string {
@@ -125,8 +146,8 @@ func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) 
 
 	for _, stack := range allStackSummaries {
 		if stack.StackStatus != cfnTypes.StackStatusDeleteComplete {
-			stackResources, _ := cfnClient.ListStackResources(ctx, &cloudformation.ListStackResourcesInput{StackName: stack.StackName})
-			buckets, _ := findBucketsInStack(stackResources, *stack.StackName)
+			stackResourceSummaries, _ := getAllStackResources(ctx, cfnClient, *stack.StackName)
+			buckets := FindBucketsInStack(stackResourceSummaries, *stack.StackName)
 			bucketsInAStack = append(bucketsInAStack, buckets...)
 		}
 	}
