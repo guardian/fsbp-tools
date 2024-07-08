@@ -36,12 +36,21 @@ func ParseArgs() cliArgs {
 		log.Fatal("Please provide a max between 1 and 100")
 	}
 
+	var exclusionsSlice []string
+
+	if *exclusions == "" {
+		exclusionsSlice = []string{}
+	} else {
+		fmt.Printf("Parsing exclusions")
+		exclusionsSlice = SplitAndTrim(*exclusions)
+	}
+
 	return cliArgs{
 		Profile:     *profile,
 		Region:      *region,
 		Execute:     *execute,
 		BucketCount: int32(*bucketCount),
-		Exclusions:  SplitAndTrim(*exclusions),
+		Exclusions:  exclusionsSlice,
 	}
 }
 
@@ -59,7 +68,7 @@ func Complement[T comparable](slice []T, toRemove []T) []T {
 		if !found {
 			complement = append(complement, element)
 		} else {
-			fmt.Printf("\nExcluding: %v", element)
+			fmt.Printf("\nRemoving: '%v' from slice", element)
 		}
 	}
 	fmt.Println("") //Tidy up the log output
@@ -74,5 +83,6 @@ func SplitAndTrim(str string) []string {
 		s := strings.Trim(s, " ")
 		trimmed = append(trimmed, s)
 	}
+
 	return Complement(trimmed, []string{""})
 }
