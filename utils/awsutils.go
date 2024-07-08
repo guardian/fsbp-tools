@@ -82,40 +82,55 @@ func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Clie
 	return bucketsToBlock, nil
 }
 
-func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) []string {
+func getAllStackSummaries(ctx context.Context, cfnClient *cloudformation.Client) ([]cfnTypes.StackSummary, error) {
 	var allStackSummaries []cfnTypes.StackSummary
 
-	firstStacks, _ := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{})
+	firstStacks, err := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{})
+	if err != nil {
+		return nil, err
+	}
 	allStackSummaries = append(allStackSummaries, firstStacks.StackSummaries...)
 
 	var nextToken = firstStacks.NextToken
 	for nextToken != nil {
-		stacks, _ := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{NextToken: nextToken})
+		stacks, err := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{NextToken: nextToken})
+		if err != nil {
+			return nil, err
+		}
 		allStackSummaries = append(allStackSummaries, stacks.StackSummaries...)
 		nextToken = stacks.NextToken
 
 	}
-	fmt.Println("Found " + fmt.Sprint(len(allStackSummaries)) + " stacks in account. Enumerating stacks with buckets:")
-	fmt.Println("Next token: " + fmt.Sprint(nextToken))
+	fmt.Println("Found " + fmt.Sprint(len(allStackSummaries)) + " stacks in account.")
+	return allStackSummaries, nil
+}
+
+func findBucketsInStack(stackResources *cloudformation.ListStackResourcesOutput, stackName string) ([]string, error) {
+
+	var buckets []string
+	for _, resource := range stackResources.StackResourceSummaries {
+		if *resource.ResourceType == "AWS::S3::Bucket" {
+			buckets = append(buckets, *resource.PhysicalResourceId)
+		}
+	}
+	if len(buckets) > 0 {
+		fmt.Printf("\nStack: %s - Buckets: %v", stackName, buckets)
+	}
+	return buckets, nil
+}
+
+func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) []string {
+	allStackSummaries, _ := getAllStackSummaries(ctx, cfnClient)
 	var bucketsInAStack []string
 
 	for _, stack := range allStackSummaries {
 		if stack.StackStatus != cfnTypes.StackStatusDeleteComplete {
 			stackResources, _ := cfnClient.ListStackResources(ctx, &cloudformation.ListStackResourcesInput{StackName: stack.StackName})
-			for _, resource := range stackResources.StackResourceSummaries {
-				var buckets []string
-				if *resource.ResourceType == "AWS::S3::Bucket" {
-					buckets = append(buckets, *resource.PhysicalResourceId)
-					bucketsInAStack = append(bucketsInAStack, *resource.PhysicalResourceId)
-				}
-				if len(buckets) > 0 {
-					fmt.Printf("\nStack: %s - Buckets: %v", *stack.StackName, buckets)
-				}
-			}
+			buckets, _ := findBucketsInStack(stackResources, *stack.StackName)
+			bucketsInAStack = append(bucketsInAStack, buckets...)
 		}
 	}
 	fmt.Println("") //Tidy up the log output
-
 	return bucketsInAStack
 }
 
