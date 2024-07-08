@@ -83,12 +83,23 @@ func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Clie
 }
 
 func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) []string {
+	var allStackSummaries []cfnTypes.StackSummary
 
+	firstStacks, _ := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{})
+	allStackSummaries = append(allStackSummaries, firstStacks.StackSummaries...)
+
+	var nextToken = firstStacks.NextToken
+	for nextToken != nil {
+		stacks, _ := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{NextToken: nextToken})
+		allStackSummaries = append(allStackSummaries, stacks.StackSummaries...)
+		nextToken = stacks.NextToken
+
+	}
+	fmt.Println("Found " + fmt.Sprint(len(allStackSummaries)) + " stacks in account. Enumerating stacks with buckets:")
+	fmt.Println("Next token: " + fmt.Sprint(nextToken))
 	var bucketsInAStack []string
-	stacks, _ := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{})
-	fmt.Println("Found " + fmt.Sprint(len(stacks.StackSummaries)) + " stacks in account. Enumerating stacks with buckets:")
 
-	for _, stack := range stacks.StackSummaries {
+	for _, stack := range allStackSummaries {
 		if stack.StackStatus != cfnTypes.StackStatusDeleteComplete {
 			stackResources, _ := cfnClient.ListStackResources(ctx, &cloudformation.ListStackResourcesInput{StackName: stack.StackName})
 			for _, resource := range stackResources.StackResourceSummaries {
