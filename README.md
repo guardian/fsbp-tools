@@ -1,5 +1,28 @@
 # bucket-blocker
 
+## What is this thing?
+
+Bucket blocker is a tool that searces for violations of [FSBP S3.8](https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-8), which states that all buckets should have individual configurations blocking public access.
+
+Once it's found the buckets that are not compliant, it skips over any that are in CloudFormation stacks (to avoid introducing stack drift), and then blocks public access to the remaining buckets.
+
+```mermaid
+flowchart TB
+    stack[Is it part of a cloudformation stack]
+    excl[Is it in a list of excluded \n buckets provided by the user?]
+    block[Block public access to the bucket]
+    ruleBreak[Does the bucket break S3.8?]
+    break[Do nothing.]
+    noAccess[No. Access already \n blocked]
+
+    ruleBreak --> Yes --> stack --> No --> excl --> Nope --> block
+    ruleBreak --> noAccess --> break
+    stack --> Yeah --> break
+    excl --> Yep --> break
+```
+
+There are a few extra features, controlled by flags, enumerated below.
+
 ## Command line options:
 
 Bucket blocker takes up to 3 flags:
