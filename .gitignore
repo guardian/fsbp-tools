@@ -27,4 +27,4 @@ go.work.sum
 # Go release packages
 release/**
 
-bucket-blocker
+bucket-blocker/bucket-blocker
