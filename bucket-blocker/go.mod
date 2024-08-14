@@ -1,4 +1,4 @@
-module github.com/guardian/bucket-blocker
+module github.com/guardian/fsbp-tools/bucket-blocker
 
 go 1.22.1
 
