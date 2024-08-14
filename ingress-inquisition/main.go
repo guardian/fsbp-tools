@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/guardian/fsbp-tools/bucket-blocker/utils"
+	awsauth "github.com/guardian/fsbp-tools/aws-auth"
 )
 
 type cliArgs struct {
@@ -40,7 +40,7 @@ func main() {
 
 	args := ParseArgs()
 
-	_, err := utils.LoadDefaultConfig(ctx, args.Profile, args.Region)
+	_, err := awsauth.LoadDefaultConfig(ctx, args.Profile, args.Region)
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
 	} else {
