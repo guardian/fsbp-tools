@@ -66,7 +66,7 @@ format. This will allow us to automatically generate a changelog and correctly
 version the application when it is released.
 
 While developing locally, you can test the application using the following
-command from the root of the repository, without needing to build the binary:
+command from the bucket-blocker subdirectory, without needing to build the binary:
 
 ```bash
 go run main.go -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]

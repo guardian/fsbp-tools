@@ -18,13 +18,13 @@
 # vendor/
 
 # Go workspace file
-go.work
-go.work.sum
+#go.work
+#go.work.sum
 
 #IntelliJ
 .idea
 
 # Go release packages
-release/**
+**/release/**
 
-bucket-blocker
+bucket-blocker/bucket-blocker
