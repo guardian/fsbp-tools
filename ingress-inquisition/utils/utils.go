@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"flag"
@@ -33,12 +33,12 @@ func ParseArgs() cliArgs {
 	}
 }
 
-func idFromArn(arn string) string {
+func IdFromArn(arn string) string {
 	splitArr := strings.Split(arn, "/")
 	return splitArr[len(splitArr)-1]
 }
 
-func findTag(tags []types.Tag, key string, defaultValue string) string {
+func FindTag(tags []types.Tag, key string, defaultValue string) string {
 	for _, tag := range tags {
 		if *tag.Key == key {
 			return *tag.Value

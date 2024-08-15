@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 
 func TestEmptyArn(t *testing.T) {
 	str := ""
-	result := idFromArn(str)
+	result := IdFromArn(str)
 	if result != "" {
 		t.Errorf("Error processing ARN. Expected empty string, got %s", result)
 	}
@@ -16,7 +16,7 @@ func TestEmptyArn(t *testing.T) {
 
 func TestArnWithoutSlash(t *testing.T) {
 	str := "abcd"
-	result := idFromArn(str)
+	result := IdFromArn(str)
 	if result != str {
 		t.Errorf("Error processing ARN. Expected %s, got %s", str, result)
 	}
@@ -24,7 +24,7 @@ func TestArnWithoutSlash(t *testing.T) {
 
 func TestArnWithSingleSlash(t *testing.T) {
 	str := "arn:aws:ec2:us-west-2:123456789012:instance/i-1234567890abcdef0"
-	result := idFromArn(str)
+	result := IdFromArn(str)
 	if result != "i-1234567890abcdef0" {
 		t.Errorf("Error processing ARN. Expected i-1234567890abcdef0, got %s", result)
 	}
@@ -34,7 +34,7 @@ func TestFindTagNoTags(t *testing.T) {
 	tags := []types.Tag{}
 	key := "Name"
 	defaultValue := "none"
-	result := findTag(tags, key, defaultValue)
+	result := FindTag(tags, key, defaultValue)
 	if result != defaultValue {
 		t.Errorf("Error finding tag. Expected %s, got %s", defaultValue, result)
 	}
@@ -49,7 +49,7 @@ func TestFindTagNoMatchingTag(t *testing.T) {
 		{Key: &key, Value: &value},
 	}
 	defaultValue := "none"
-	result := findTag(tags, "Name", defaultValue)
+	result := FindTag(tags, "Name", defaultValue)
 	if result != defaultValue {
 		t.Errorf("Error finding tag. Expected %s, got %s", defaultValue, result)
 	}
@@ -62,7 +62,7 @@ func TestFindTagMatchingTag(t *testing.T) {
 		{Key: &key, Value: &value},
 	}
 	defaultValue := "none"
-	result := findTag(tags, key, defaultValue)
+	result := FindTag(tags, key, defaultValue)
 	if result != value {
 		t.Errorf("Error finding tag. Expected %s, got %s", value, result)
 	}

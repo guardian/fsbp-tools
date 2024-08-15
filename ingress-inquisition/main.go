@@ -8,13 +8,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	awsauth "github.com/guardian/fsbp-tools/aws-common"
+	"github.com/guardian/fsbp-tools/ingress-inquisition/utils"
 )
 
 func main() {
 
 	ctx := context.Background()
 
-	args := ParseArgs()
+	args := utils.ParseArgs()
 
 	cfg, err := awsauth.LoadDefaultConfig(ctx, args.Profile, args.Region)
 	if err != nil {
@@ -33,7 +34,7 @@ func main() {
 	securityGroups := []string{}
 	for _, finding := range findings.Findings {
 		for _, resource := range finding.Resources {
-			sgId := idFromArn(*resource.Id)
+			sgId := utils.IdFromArn(*resource.Id)
 			securityGroups = append(securityGroups, sgId)
 		}
 	}
@@ -53,7 +54,7 @@ func main() {
 			log.Fatalf("Error describing VPC: %v", err)
 		}
 		for _, vpc := range vpcs.Vpcs {
-			name := findTag(vpc.Tags, "Name", "unknown")
+			name := utils.FindTag(vpc.Tags, "Name", "unknown")
 			fmt.Printf("Security group: %s, VPC name: %s, VPC id: %s\n", *group.GroupId, name, *group.VpcId)
 		}
 	}
