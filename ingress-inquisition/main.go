@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	awsauth "github.com/guardian/fsbp-tools/aws-auth"
+	awsauth "github.com/guardian/fsbp-tools/aws-common"
 )
 
 type cliArgs struct {

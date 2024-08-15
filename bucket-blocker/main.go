@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	awsauth "github.com/guardian/fsbp-tools/aws-auth"
+	common "github.com/guardian/fsbp-tools/aws-common"
 	"github.com/guardian/fsbp-tools/bucket-blocker/utils"
 )
 
@@ -16,7 +16,7 @@ func main() {
 	ctx := context.Background()
 	args := utils.ParseArgs()
 
-	cfg, err := awsauth.LoadDefaultConfig(ctx, args.Profile, args.Region)
+	cfg, err := common.LoadDefaultConfig(ctx, args.Profile, args.Region)
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}

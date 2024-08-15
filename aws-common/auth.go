@@ -1,4 +1,4 @@
-package awsauth
+package awscommon
 
 import (
 	"context"
