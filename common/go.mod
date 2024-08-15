@@ -1,4 +1,4 @@
-module github.com/guardian/fsbp-tools/aws-common
+module github.com/guardian/fsbp-tools/common
 
 go 1.22.1
 

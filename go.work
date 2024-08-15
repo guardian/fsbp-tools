@@ -4,4 +4,4 @@ use ./bucket-blocker
 
 use ./ingress-inquisition
 
-use ./aws-common
+use ./common

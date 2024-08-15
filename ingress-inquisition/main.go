@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	awsauth "github.com/guardian/fsbp-tools/aws-common"
+	"github.com/guardian/fsbp-tools/common"
 	"github.com/guardian/fsbp-tools/ingress-inquisition/utils"
 )
 
@@ -39,14 +39,14 @@ func main() {
 
 	args := utils.ParseArgs()
 
-	cfg, err := awsauth.LoadDefaultConfig(ctx, args.Profile, args.Region)
+	cfg, err := common.LoadDefaultConfig(ctx, args.Profile, args.Region)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
 
 	securityHubClient := securityhub.NewFromConfig(cfg)
 
-	findings, err := awsauth.ReturnFindings(ctx, securityHubClient, "EC2.2", 100)
+	findings, err := common.ReturnFindings(ctx, securityHubClient, "EC2.2", 100)
 	if err != nil {
 		log.Fatalf("Error getting findings: %v", err)
 	}
@@ -78,4 +78,8 @@ func main() {
 			securityGroupsInNetworkInterfaces = append(securityGroupsInNetworkInterfaces, *group.GroupId)
 		}
 	}
+
+	unusedSecurityGroups := common.Complement(securityGroups, securityGroupsInNetworkInterfaces)
+
+	fmt.Println(unusedSecurityGroups)
 }
