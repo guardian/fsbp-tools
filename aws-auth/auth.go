@@ -7,6 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	shTypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
@@ -32,4 +34,33 @@ func LoadDefaultConfig(ctx context.Context, profile string, region string) (aws.
 	}
 
 	return cfg, nil
+}
+
+func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32) (*securityhub.GetFindingsOutput, error) {
+
+	complianceStatus := "PASSED"
+	recordState := "ACTIVE"
+
+	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
+	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
+		MaxResults: &maxResults,
+		Filters: &shTypes.AwsSecurityFindingFilters{
+			ComplianceSecurityControlId: []shTypes.StringFilter{{
+				Value:      &controlId,
+				Comparison: shTypes.StringFilterComparisonEquals,
+			}},
+			ComplianceStatus: []shTypes.StringFilter{{
+				Value:      &complianceStatus,
+				Comparison: shTypes.StringFilterComparisonNotEquals,
+			}},
+			RecordState: []shTypes.StringFilter{{
+				Value:      &recordState,
+				Comparison: shTypes.StringFilterComparisonEquals,
+			}},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return findings, nil
 }
