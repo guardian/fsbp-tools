@@ -13,32 +13,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	shTypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
+	common "github.com/guardian/fsbp-tools/aws-common"
 )
 
 func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Client, bucketCount int32) ([]string, error) {
 	controlId := "S3.8"
-	complianceStatus := "PASSED"
-	recordState := "ACTIVE"
 
 	fmt.Println("Retrieving Security Hub control failures for S3.8")
-	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
-		MaxResults: &bucketCount,
-		Filters: &shTypes.AwsSecurityFindingFilters{
-			ComplianceSecurityControlId: []shTypes.StringFilter{{
-				Value:      &controlId,
-				Comparison: shTypes.StringFilterComparisonEquals,
-			}},
-			ComplianceStatus: []shTypes.StringFilter{{
-				Value:      &complianceStatus,
-				Comparison: shTypes.StringFilterComparisonNotEquals,
-			}},
-			RecordState: []shTypes.StringFilter{{
-				Value:      &recordState,
-				Comparison: shTypes.StringFilterComparisonEquals,
-			}},
-		},
-	})
+	findings, err := common.ReturnFindings(ctx, securityHubClient, controlId, bucketCount)
 	if err != nil {
 		return nil, err
 	}
