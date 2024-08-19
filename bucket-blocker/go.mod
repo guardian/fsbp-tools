@@ -2,13 +2,13 @@ module github.com/guardian/fsbp-tools/bucket-blocker
 
 go 1.22.1
 
-replace github.com/guardian/fsbp-tools/aws-common => ../aws-common
+replace github.com/guardian/fsbp-tools/common => ../common
 
 require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.51.3
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.55.1
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.49.2
-	github.com/guardian/fsbp-tools/aws-common v0.0.0-00010101000000-000000000000
+	github.com/guardian/fsbp-tools/common v0.0.0-00010101000000-000000000000
 )
 
 require (

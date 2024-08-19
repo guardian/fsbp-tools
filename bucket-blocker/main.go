@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	common "github.com/guardian/fsbp-tools/aws-common"
 	"github.com/guardian/fsbp-tools/bucket-blocker/utils"
+	common "github.com/guardian/fsbp-tools/common"
 )
 
 func main() {

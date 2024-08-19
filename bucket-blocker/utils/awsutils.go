@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	common "github.com/guardian/fsbp-tools/aws-common"
+	common "github.com/guardian/fsbp-tools/common"
 )
 
 func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Client, bucketCount int32) ([]string, error) {
@@ -120,7 +120,7 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 	excludedBuckets := append(listBucketsInStacks(ctx, cfnClient), exclusions...)
 
 	fmt.Println("\nBuckets to exclude:")
-	bucketsToBlock := Complement(failingBuckets, excludedBuckets)
+	bucketsToBlock := common.Complement(failingBuckets, excludedBuckets)
 
 	bucketsToBlockCount := len(bucketsToBlock)
 	bucketsToSkipCount := failingBucketCount - bucketsToBlockCount

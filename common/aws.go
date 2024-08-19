@@ -1,4 +1,4 @@
-package awscommon
+package common
 
 import (
 	"context"
