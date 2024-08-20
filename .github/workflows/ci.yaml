@@ -27,8 +27,9 @@ jobs:
       - name: Run tests
         run: go list -f '{{.Dir}}/...' -m | xargs go test
 
-  build:
-    name: Build
+  build-bucket-blocker:
+    name: Build bucket-blocker
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -38,11 +39,29 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: Build
-        run: ./bucket-blocker/script/build.sh
+        run: ./script/build.sh bucket-blocker
 
       - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           path: bucket-blocker/release/**/${{ env.APP }}_*
+
+  build-ingress-inquisiton:
+    name: Build ingress-inquisition
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup Go
+        uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Build
+        run: ./script/build.sh ingress-inquisition
+
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          path: ingress-inquisition/release/**/${{ env.APP }}_*
 
   enforce-dashes:
     name: Enforce bucket-blocker spelling
@@ -54,13 +73,13 @@ jobs:
       - name: Lint naming
         run: ./bucket-blocker/script/dash-lint.sh
 
-  release:
+  release-bucket-blocker:
     name: Release
     permissions:
       contents: write
       packages: write
       issues: write
-    needs: [test, build, enforce-dashes]
+    needs: [build-bucket-blocker, enforce-dashes]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
@@ -81,6 +100,39 @@ jobs:
         with:
           name: artifact
           path: bucket-blocker/release
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+  release-ingress-inquisition:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+    needs: [build-ingress-inquisiton]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          # See https://github.com/semantic-release/semantic-release/blob/master/docs/support/node-version.md
+          node-version: "20.14.0"
+
+      - name: Fetch build
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        with:
+          name: artifact
+          path: ingress-inquisito/release
 
       - name: Release
         env:

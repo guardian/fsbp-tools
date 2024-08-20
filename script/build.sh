@@ -2,6 +2,8 @@
 
 set -e
 
+APP=$1 # ie bucket-blocker or ingress-inquisition
+
 pushd () {
     command pushd "$@" > /dev/null
 }
@@ -11,9 +13,9 @@ popd () {
 }
 
 SCRIPT_PATH=$( cd "$(dirname "$0")" ; pwd -P )
-pushd "$SCRIPT_PATH/.."
+pushd "$SCRIPT_PATH/../$APP"
 
-APP=bucket-blocker
+
 
 # We only build for Mac OS
 ARCHITECTURES=("arm64" "amd64")
