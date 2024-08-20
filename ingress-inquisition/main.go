@@ -13,22 +13,11 @@ import (
 	"github.com/guardian/fsbp-tools/ingress-inquisition/utils"
 )
 
-func main() {
-
-	ctx := context.Background()
-
-	args := utils.ParseArgs()
-
-	cfg, err := common.LoadDefaultConfig(ctx, args.Profile, args.Region)
-	if err != nil {
-		log.Fatalf("%v", err)
-	}
-
-	securityHubClient := securityhub.NewFromConfig(cfg)
+func findUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securityHubClient *securityhub.Client) ([]utils.SecurityGroupRuleDetails, error) {
 
 	findings, err := common.ReturnFindings(ctx, securityHubClient, "EC2.2", 100)
 	if err != nil {
-		log.Fatalf("Error getting findings: %v", err)
+		return nil, err
 	}
 
 	securityGroups := []string{}
@@ -39,11 +28,9 @@ func main() {
 		}
 	}
 
-	ec2Client := ec2.NewFromConfig(cfg)
-
 	unusedSecurityGroups, err := utils.FindUnusedSecurityGroups(ctx, ec2Client, securityGroups)
 	if err != nil {
-		log.Fatalf("Error finding unused security groups: %v", err)
+		return nil, err
 	}
 
 	securityGroupRuleDetails := []utils.SecurityGroupRuleDetails{}
@@ -51,12 +38,12 @@ func main() {
 	for _, sg := range unusedSecurityGroups {
 		rules, err := utils.GetSecurityGroupRuleDetails(ctx, ec2Client, sg)
 		if err != nil {
-			log.Fatalf("Error getting security group rules: %v", err)
+			return nil, err
 		}
 		securityGroupRuleDetails = append(securityGroupRuleDetails, rules...)
 	}
 
-	fmt.Println("\nIngress/egress rules on unused default security groups:")
+	fmt.Println("Ingress/egress rules on unused default security groups:")
 
 	// Print out results as a table
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
@@ -68,7 +55,29 @@ func main() {
 	err = w.Flush()
 
 	if err != nil {
-		log.Fatalf("Error describing security group rules: %v", err)
+		return nil, err
+	}
+
+	return securityGroupRuleDetails, nil
+}
+
+func main() {
+
+	ctx := context.Background()
+
+	args := utils.ParseArgs()
+
+	cfg, err := common.LoadDefaultConfig(ctx, args.Profile, args.Region)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+
+	ec2Client := ec2.NewFromConfig(cfg)
+	securityHubClient := securityhub.NewFromConfig(cfg)
+
+	securityGroupRuleDetails, err := findUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient)
+	if err != nil {
+		log.Fatalf("Error finding unused security group rules: %v", err)
 	}
 
 	fmt.Println("\n ")
