@@ -12,7 +12,7 @@ Once it's found security groups that are not compliant, it skips over any that a
 flowchart TB
     usage[Is the group in use?]
     block[Delete all security group rules]
-    ruleBreak[Does the bucket break EC2.2?]
+    ruleBreak[Does the group break EC2.2?]
     break[Do nothing.]
     inUse[Yeah]
 
