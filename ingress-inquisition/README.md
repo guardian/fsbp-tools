@@ -1,8 +1,8 @@
-# bucket-blocker
+# ingress-inquisition
 
 ## What is this thing?
 
-Ingress Inquisition is a tool that searces for violations of [FSBP EC2.2](https://docs.aws.amazon.com/securityhub/latest/userguide/ec2-controls.html#ec2-2), which states that default security groups in VPCs should not have ingress or egress rules. Old VPCs were usually configured this way by default, new VPCs will not, so typically this will just clean up old VPCs with no ongoing work.
+ingress-inquisition is a tool that searces for violations of [FSBP EC2.2](https://docs.aws.amazon.com/securityhub/latest/userguide/ec2-controls.html#ec2-2), which states that default security groups in VPCs should not have ingress or egress rules. Old VPCs were usually configured this way by default, new VPCs will not, so typically this will just clean up old VPCs with no ongoing work.
 
 Once it's found security groups that are not compliant, it skips over any that are associated with an Elastic Network Interface (ENI) to avoid breaking things.
 

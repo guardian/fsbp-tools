@@ -2,7 +2,7 @@
 
 ## What is this thing?
 
-Bucket blocker is a tool that searces for violations of [FSBP S3.8](https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-8), which states that all buckets should have individual configurations blocking public access.
+bucket-blocker is a tool that searces for violations of [FSBP S3.8](https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-8), which states that all buckets should have individual configurations blocking public access.
 
 Once it's found the buckets that are not compliant, it skips over any that are in CloudFormation stacks (to avoid introducing stack drift), and then blocks public access to the remaining buckets.
 
