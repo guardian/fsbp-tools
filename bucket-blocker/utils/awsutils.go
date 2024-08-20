@@ -1,10 +1,8 @@
 package utils
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -156,14 +154,8 @@ func blockPublicAccess(ctx context.Context, s3Client *s3.Client, name string) (*
 
 func BlockBuckets(ctx context.Context, s3Client *s3.Client, bucketsToBlock []string, execute bool) {
 	if execute {
-		buf := bufio.NewReader(os.Stdin)
-		fmt.Println("\nPress 'y', to confirm, and enter to continue. Otherwise, hit enter to exit.")
-		fmt.Print("> ")
-		input, err := buf.ReadBytes('\n')
-		if err != nil {
-			fmt.Println("Error reading input: " + err.Error())
-		}
-		if strings.ToLower(strings.TrimSpace(string(input))) == "y" {
+		userConfirmed := common.UserConfirmation()
+		if userConfirmed {
 			for _, name := range bucketsToBlock {
 				_, err := blockPublicAccess(ctx, s3Client, name)
 				if err != nil {

@@ -75,15 +75,18 @@ func main() {
 
 	var failures int = 0
 	if args.Execute {
-		log.Println("Starting to delete rules...")
-		for _, sgr := range securityGroupRuleDetails {
-			err := utils.DeleteSecurityGroupRule(ctx, ec2Client, sgr)
-			if err != nil {
-				log.Printf("Error deleting rule: %v\n", sgr.Rule.GroupRuleId)
-				log.Printf("Error: %v\n", err)
-				failures++
-			}
+		userConfirmed := common.UserConfirmation()
+		if userConfirmed {
+			log.Println("Starting to delete rules...")
+			for _, sgr := range securityGroupRuleDetails {
+				err := utils.DeleteSecurityGroupRule(ctx, ec2Client, sgr)
+				if err != nil {
+					log.Printf("Error deleting rule: %v\n", sgr.Rule.GroupRuleId)
+					log.Printf("Error: %v\n", err)
+					failures++
+				}
 
+			}
 		}
 	}
 
