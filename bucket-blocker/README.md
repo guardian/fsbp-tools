@@ -58,13 +58,6 @@ build it from source.
 
 ## Local development
 
-<!-- TODO enforce conventional commits via GHA-->
-
-When committing your changes, please use the
-[conventional commit](https://www.conventionalcommits.org/en/v1.0.0/#summary)
-format. This will allow us to automatically generate a changelog and correctly
-version the application when it is released.
-
 While developing locally, you can test the application using the following
 command from the bucket-blocker subdirectory, without needing to build the binary:
 
