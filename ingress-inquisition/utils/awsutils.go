@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -127,4 +128,27 @@ func FindUnusedSecurityGroups(ctx context.Context, ec2Client *ec2.Client, sgIds 
 	}
 
 	return common.Complement(sgIds, securityGroupsInNetworkInterfaces), nil
+}
+
+func DeleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule SecurityGroupRuleDetails) error {
+	if rule.Rule.Direction == "egress" {
+		_, err := ec2Client.RevokeSecurityGroupEgress(ctx, &ec2.RevokeSecurityGroupEgressInput{
+			GroupId:              &rule.SecurityGroup,
+			SecurityGroupRuleIds: []string{rule.Rule.GroupRuleId},
+		})
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err := ec2Client.RevokeSecurityGroupIngress(ctx, &ec2.RevokeSecurityGroupIngressInput{
+			GroupId:              &rule.SecurityGroup,
+			SecurityGroupRuleIds: []string{rule.Rule.GroupRuleId},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Printf("Deleted rule %s from security group %s\n", rule.Rule.GroupRuleId, rule.SecurityGroup)
+	return nil
+
 }

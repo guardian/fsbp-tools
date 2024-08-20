@@ -60,15 +60,35 @@ func main() {
 
 	// Print out results as a table
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
-	fmt.Fprintln(w, "Security Group\tVPC Name\tVPC ID\tFrom Port\tTo Port\tIP Protocol\tDirection")
+	fmt.Fprintln(w, "Security Group\tVPC Name\tVPC ID\tRule Id\tFrom Port\tTo Port\tIP Protocol\tDirection")
 	for _, sg := range securityGroupRuleDetails {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%d\t%s\t%s\n", sg.SecurityGroup, sg.VpcDetails.VpcName, sg.VpcDetails.VpcId, sg.Rule.FromPort, sg.Rule.ToPort, sg.Rule.IpProtocol, sg.Rule.Direction)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\n", sg.SecurityGroup, sg.VpcDetails.VpcName, sg.VpcDetails.VpcId, sg.Rule.GroupRuleId, sg.Rule.FromPort, sg.Rule.ToPort, sg.Rule.IpProtocol, sg.Rule.Direction)
 	}
 
-	w.Flush()
+	err = w.Flush()
 
 	if err != nil {
 		log.Fatalf("Error describing security group rules: %v", err)
+	}
+
+	fmt.Println("\n ")
+
+	var failures int = 0
+	if args.Execute {
+		log.Println("Starting to delete rules...")
+		for _, sgr := range securityGroupRuleDetails {
+			err := utils.DeleteSecurityGroupRule(ctx, ec2Client, sgr)
+			if err != nil {
+				log.Printf("Error deleting rule: %v\n", sgr.Rule.GroupRuleId)
+				log.Printf("Error: %v\n", err)
+				failures++
+			}
+
+		}
+	}
+
+	if failures > 0 {
+		log.Fatalf("Failed to delete %d rules", failures)
 	}
 
 }
