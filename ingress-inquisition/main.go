@@ -8,43 +8,90 @@ import (
 	"text/tabwriter"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/guardian/fsbp-tools/common"
 	"github.com/guardian/fsbp-tools/ingress-inquisition/utils"
 )
 
-type SecurityGroupAndVpc struct {
-	SecurityGroup string
-	VpcName       string
-	VpcId         string
+type VpcDetails struct {
+	VpcName string
+	VpcId   string
 }
 
-func getVpcDetails(ctx context.Context, ec2Client *ec2.Client, groupIds []string) []SecurityGroupAndVpc {
-	groupDescriptions, err := ec2Client.DescribeSecurityGroups(ctx, &ec2.DescribeSecurityGroupsInput{
-		GroupIds: groupIds,
+type SecurityGroupRule struct {
+	GroupRuleId string
+	FromPort    int32
+	ToPort      int32
+	IpProtocol  string
+	Direction   string // ingress or egress
+}
+
+type SecurityGroupRuleDetails struct {
+	SecurityGroup string
+	VpcDetails    VpcDetails
+	Rule          SecurityGroupRule
+}
+
+func getSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, groupId string) ([]SecurityGroupRule, error) {
+	fieldName := "group-id"
+	rules, err := ec2Client.DescribeSecurityGroupRules(ctx, &ec2.DescribeSecurityGroupRulesInput{
+		Filters: []types.Filter{
+			{
+				Name:   &fieldName,
+				Values: []string{groupId},
+			},
+		},
 	})
 	if err != nil {
-		log.Fatalf("Error describing security groups: %v", err)
+		return nil, err
 	}
 
-	res := []SecurityGroupAndVpc{}
+	res := []SecurityGroupRule{}
+	for _, rule := range rules.SecurityGroupRules {
+		var direction string
+
+		if *rule.IsEgress {
+			direction = "egress"
+		} else {
+			direction = "ingress"
+		}
+		res = append(res, SecurityGroupRule{
+			GroupRuleId: *rule.SecurityGroupRuleId,
+			FromPort:    *rule.FromPort,
+			ToPort:      *rule.ToPort,
+			IpProtocol:  *rule.IpProtocol,
+			Direction:   direction,
+		})
+	}
+	return res, nil
+}
+
+func getVpcDetails(ctx context.Context, ec2Client *ec2.Client, groupId string) (VpcDetails, error) {
+	groupDescriptions, err := ec2Client.DescribeSecurityGroups(ctx, &ec2.DescribeSecurityGroupsInput{
+		GroupIds: []string{groupId},
+	})
+	if err != nil {
+		return VpcDetails{}, err
+	}
+
+	res := []VpcDetails{}
 	for _, group := range groupDescriptions.SecurityGroups {
 		vpcs, err := ec2Client.DescribeVpcs(ctx, &ec2.DescribeVpcsInput{
 			VpcIds: []string{*group.VpcId},
 		})
 		if err != nil {
-			log.Fatalf("Error describing VPC: %v", err)
+			return VpcDetails{}, err
 		}
 		for _, vpc := range vpcs.Vpcs {
 			name := utils.FindTag(vpc.Tags, "Name", "unknown")
-			res = append(res, SecurityGroupAndVpc{
-				SecurityGroup: *group.GroupId,
-				VpcName:       name,
-				VpcId:         *group.VpcId,
+			res = append(res, VpcDetails{
+				VpcName: name,
+				VpcId:   *group.VpcId,
 			})
 		}
 	}
-	return res
+	return res[0], nil // A security group cannot be associated with multiple VPCs.
 }
 
 func findUnusedSecurityGroups(ctx context.Context, ec2Client *ec2.Client, sgIds []string) ([]string, error) {
@@ -100,15 +147,39 @@ func main() {
 		log.Fatalf("Error finding unused security groups: %v", err)
 	}
 
-	unusedSgVpcDetails := getVpcDetails(ctx, ec2Client, unusedSecurityGroups)
+	var securityGroupRuleDetails []SecurityGroupRuleDetails
 
-	fmt.Println("\nUnused default security groups with open ingress/egress:")
+	for _, sg := range unusedSecurityGroups {
+		vpcDetails, err := getVpcDetails(ctx, ec2Client, sg)
+		if err != nil {
+			log.Fatalf("Error getting VPC details: %v", err)
+		}
+		rules, err := getSecurityGroupRules(ctx, ec2Client, sg)
+		if err != nil {
+			log.Fatalf("Error getting security group rules: %v", err)
+		}
+		for _, rule := range rules {
+			securityGroupRuleDetails = append(securityGroupRuleDetails, SecurityGroupRuleDetails{
+				SecurityGroup: sg,
+				VpcDetails:    vpcDetails,
+				Rule:          rule,
+			})
+		}
+	}
+
+	fmt.Println("\nIngress/egress rules on unused default security groups:")
 
 	// Print out results as a table
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
-	fmt.Fprintln(w, "Security Group\tVPC Name\tVPC ID")
-	for _, sg := range unusedSgVpcDetails {
-		fmt.Fprintf(w, "%s\t%s\t%s\n", sg.SecurityGroup, sg.VpcName, sg.VpcId)
+	fmt.Fprintln(w, "Security Group\tVPC Name\tVPC ID\tFrom Port\tTo Port\tIP Protocol\tDirection")
+	for _, sg := range securityGroupRuleDetails {
+		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%d\t%s\t%s\n", sg.SecurityGroup, sg.VpcDetails.VpcName, sg.VpcDetails.VpcId, sg.Rule.FromPort, sg.Rule.ToPort, sg.Rule.IpProtocol, sg.Rule.Direction)
 	}
+
 	w.Flush()
+
+	if err != nil {
+		log.Fatalf("Error describing security group rules: %v", err)
+	}
+
 }
