@@ -62,14 +62,13 @@ jobs:
       - name: Lint naming
         run: ./bucket-blocker/script/dash-lint.sh
 
-  release-bucket-blocker:
+  release:
     name: Release
     permissions:
       contents: write
       packages: write
       issues: write
-    needs: [build-bucket-blocker, enforce-dashes]
-    if: github.ref == 'refs/heads/main'
+    needs: [build-ingress-inquisition, build-bucket-blocker, enforce-dashes]
     runs-on: ubuntu-latest
 
     steps:
@@ -89,33 +88,6 @@ jobs:
         with:
           name: artifact-bucket-blocker
           path: bucket-blocker/release
-
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
-
-  release-ingress-inquisition:
-    name: Release
-    permissions:
-      contents: write
-      packages: write
-      issues: write
-    needs: [build-ingress-inquisition]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
-        with:
-          # See https://github.com/semantic-release/semantic-release/blob/master/docs/support/node-version.md
-          node-version: "20.14.0"
 
       - name: Fetch build
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
