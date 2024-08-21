@@ -2,11 +2,15 @@
 
 ## What is this thing?
 
-ingress-inquisition is a tool that searces for violations of [FSBP EC2.2](https://docs.aws.amazon.com/securityhub/latest/userguide/ec2-controls.html#ec2-2), which states that default security groups in VPCs should not have ingress or egress rules. Old VPCs were usually configured this way by default, new VPCs will not, so typically this will just clean up old VPCs with no ongoing work.
+ingress-inquisition is a tool that searces for violations of
+[FSBP EC2.2](https://docs.aws.amazon.com/securityhub/latest/userguide/ec2-controls.html#ec2-2),
+which states that default security groups in VPCs should not have ingress or
+egress rules. Old VPCs were usually configured this way by default, new VPCs
+will not, so typically this will just clean up old VPCs with no ongoing work.
 
-Once it's found security groups that are not compliant, it skips over any that are associated with an Elastic Network Interface (ENI) to avoid breaking things.
-
- <!-- and then deletes the offending rules. -->
+Once it's found security groups that are not compliant, it skips over any that
+are associated with an Elastic Network Interface (ENI) to avoid breaking
+things, and then deletes the offending rules.
 
 ```mermaid
 flowchart TB
@@ -32,7 +36,7 @@ Bucket blocker takes the following flags:
 
 - **region**: _Required._ The region where the bucket is located.
 
-<!-- - **execute**: _Optional._ Takes no value. If present, it will ask the user to confirm, then deletes the rules. -->
+- **execute**: _Optional._ Takes no value. If present, it will ask the user to confirm, then delete the rules.
 
 ## Local development
 
