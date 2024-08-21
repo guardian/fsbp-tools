@@ -152,33 +152,37 @@ func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, se
 	if err != nil {
 		return nil, err
 	}
+	if len(unusedSecurityGroups) > 0 {
+		securityGroupRuleDetails := []SecurityGroupRuleDetails{}
 
-	securityGroupRuleDetails := []SecurityGroupRuleDetails{}
+		for _, sg := range unusedSecurityGroups {
+			rules, err := getSecurityGroupRuleDetails(ctx, ec2Client, sg)
+			if err != nil {
+				return nil, err
+			}
+			securityGroupRuleDetails = append(securityGroupRuleDetails, rules...)
+		}
 
-	for _, sg := range unusedSecurityGroups {
-		rules, err := getSecurityGroupRuleDetails(ctx, ec2Client, sg)
+		fmt.Println("Ingress/egress rules on unused default security groups:")
+
+		// Print out results as a table
+		w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
+		fmt.Fprintln(w, "Security Group\tVPC Name\tVPC ID\tRule Id\tFrom Port\tTo Port\tIP Protocol\tDirection")
+		for _, sg := range securityGroupRuleDetails {
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\n", sg.SecurityGroup, sg.VpcDetails.VpcName, sg.VpcDetails.VpcId, sg.Rule.GroupRuleId, sg.Rule.FromPort, sg.Rule.ToPort, sg.Rule.IpProtocol, sg.Rule.Direction)
+		}
+
+		err = w.Flush()
+
 		if err != nil {
 			return nil, err
 		}
-		securityGroupRuleDetails = append(securityGroupRuleDetails, rules...)
+
+		return securityGroupRuleDetails, nil
+	} else {
+		fmt.Println("No unused security groups found")
+		return nil, nil
 	}
-
-	fmt.Println("Ingress/egress rules on unused default security groups:")
-
-	// Print out results as a table
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
-	fmt.Fprintln(w, "Security Group\tVPC Name\tVPC ID\tRule Id\tFrom Port\tTo Port\tIP Protocol\tDirection")
-	for _, sg := range securityGroupRuleDetails {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\n", sg.SecurityGroup, sg.VpcDetails.VpcName, sg.VpcDetails.VpcId, sg.Rule.GroupRuleId, sg.Rule.FromPort, sg.Rule.ToPort, sg.Rule.IpProtocol, sg.Rule.Direction)
-	}
-
-	err = w.Flush()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return securityGroupRuleDetails, nil
 }
 
 func DeleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule SecurityGroupRuleDetails) error {
