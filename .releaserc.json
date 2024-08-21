@@ -8,12 +8,20 @@
       {
         "assets": [
           {
-            "path": "release/darwin-amd64/bucket-blocker_darwin-amd64.tar.gz",
-            "label": "darwin-amd64"
+            "path": "bucket-blocker/release/darwin-amd64/bucket-blocker_darwin-amd64.tar.gz",
+            "label": "bucket-blocker_darwin-amd64"
           },
           {
-            "path": "release/darwin-arm64/bucket-blocker_darwin-arm64.tar.gz",
-            "label": "darwin-arm64"
+            "path": "bucket-blocker/release/darwin-arm64/bucket-blocker_darwin-arm64.tar.gz",
+            "label": "bucket-blocker_darwin-arm64"
+          },
+          {
+            "path": "ingress-inquisition/release/darwin-amd64/ingress-inquisition_darwin-amd64.tar.gz",
+            "label": "ingress-inquisition_darwin-amd64"
+          },
+          {
+            "path": "ingress-inquisition/release/darwin-arm64/ingress-inquisition_darwin-arm64.tar.gz",
+            "label": "ingress-inquisition_darwin-arm64"
           }
         ]
       }
