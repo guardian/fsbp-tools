@@ -63,7 +63,7 @@ jobs:
         run: ./bucket-blocker/script/dash-lint.sh
 
   release:
-    name: Release
+    name: Create GitHub release
     permissions:
       contents: write
       packages: write
