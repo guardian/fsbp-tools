@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-TOOL_NAME="bucket-blocker"
-INCORRECT_NAME="bucketblocker"
+TOOL_NAME=$1
+INCORRECT_NAME=$2
 
 CURRENT_FILE=$(basename "${BASH_SOURCE}")
 ROOT_DIR=$(git rev-parse --show-toplevel)
-BAD_NAMES=$(grep -ril "$INCORRECT_NAME" "$ROOT_DIR" --exclude "$CURRENT_FILE")
+BAD_NAMES=$(grep -ril "$INCORRECT_NAME" "$ROOT_DIR" --exclude "$CURRENT_FILE" --exclude "$ROOT_DIR/.github/workflows/ci.yaml")
 
 if [ -n "$BAD_NAMES" ]; then
     echo "$TOOL_NAME has a dash in it, and inconsistencies in the codebase can cause major problems, please correct the spelling." >&2

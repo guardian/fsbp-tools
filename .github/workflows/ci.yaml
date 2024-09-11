@@ -52,7 +52,7 @@ jobs:
           APP: ingress-inquisition
           GO_VERSION: ${{ env.GO_VERSION }}
 
-  enforce-dashes:
+  enforce-bucket-blocker:
     name: Enforce bucket-blocker spelling
     runs-on: ubuntu-latest
     steps:
@@ -60,7 +60,17 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Lint naming
-        run: ./script/dash-lint.sh
+        run: ./script/dash-lint.sh bucket-blocker bucketblocker
+
+  enforce-ingress-inquisition:
+    name: Enforce ingress-inquisition spelling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Lint naming
+        run: ./script/dash-lint.sh ingress-inquisition ingressinquisition
 
   release:
     name: Create GitHub release
@@ -68,7 +78,13 @@ jobs:
       contents: write
       packages: write
       issues: write
-    needs: [build-ingress-inquisition, build-bucket-blocker, enforce-dashes]
+    needs:
+      [
+        build-ingress-inquisition,
+        build-bucket-blocker,
+        enforce-bucket-blocker,
+        enforce-ingress-inquisition,
+      ]
     runs-on: ubuntu-latest
 
     steps:
