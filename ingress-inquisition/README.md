@@ -20,8 +20,6 @@ flowchart TB
 
 ```
 
-There are a few extra features, controlled by flags, enumerated below.
-
 ## Command line options:
 
 ingress-inquisition takes the following flags:
@@ -32,15 +30,14 @@ ingress-inquisition takes the following flags:
 
 - **execute**: _Optional._ Takes no value. If present, it will ask the user to confirm, then delete the rules.
 
-## Running the binary
+## Running
 
-This application is downloadable from brew. You'll need the guardian's brew tap
-installed before you can install the application.
-
-To do this all at once, run the following command:
+You can install and run ingress-inquisition using Homebrew:
 
 ```bash
-brew tap guardian/homebrew-devtools && brew install ingress-inquisition
+brew tap guardian/homebrew-devtools && \
+brew install ingress-inquisition && \
+ingress-inquisition -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 ```
 
 You can also download the binary directly from the Releases page on GitHub, or
