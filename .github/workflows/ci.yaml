@@ -53,14 +53,17 @@ jobs:
           GO_VERSION: ${{ env.GO_VERSION }}
 
   enforce-dashes:
-    name: Enforce bucket-blocker spelling
+    name: Enforce dashes in project names
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Lint naming
-        run: ./bucket-blocker/script/dash-lint.sh
+      - name: Lint bucket-blocker
+        run: ./script/dash-lint.sh bucket-blocker
+
+      - name: Lint ingress-inquisition
+        run: ./script/dash-lint.sh ingress-inquisition
 
   release:
     name: Create GitHub release
