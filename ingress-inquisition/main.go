@@ -33,7 +33,7 @@ func main() {
 	fmt.Println("\n ")
 
 	var failures int = 0
-	if args.Execute {
+	if args.Execute && len(securityGroupRuleDetails) > 0 {
 		userConfirmed := common.UserConfirmation()
 		if userConfirmed {
 			log.Println("Starting to delete rules...")
