@@ -26,32 +26,14 @@ func main() {
 	securityHubClient := securityhub.NewFromConfig(cfg)
 
 	securityGroupRuleDetails, err := utils.FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient)
+
 	if err != nil {
 		log.Fatalf("Error finding unused security group rules: %v", err)
 	} else if len(securityGroupRuleDetails) == 0 {
 		fmt.Println("No unused security groups found")
-	} else if args.Execute {
-
+	} else if args.Execute && common.UserConfirmation() {
 		fmt.Println("\n ")
-		var failures int = 0
-		userConfirmed := common.UserConfirmation()
-		if userConfirmed {
-			log.Println("Starting to delete rules...")
-			for _, sgr := range securityGroupRuleDetails {
-				err := utils.DeleteSecurityGroupRule(ctx, ec2Client, sgr)
-				if err != nil {
-					log.Printf("Error deleting rule: %v\n", sgr.Rule.GroupRuleId)
-					log.Printf("Error: %v\n", err)
-					failures++
-				}
-
-			}
-		}
-
-		log.Printf("Finished deleting rules.")
-		if failures > 0 {
-			log.Fatalf("Failed to delete %d rules", failures)
-		}
+		utils.DeleteSecurityGroupRules(ctx, ec2Client, securityGroupRuleDetails)
 	}
 
 }
