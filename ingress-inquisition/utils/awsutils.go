@@ -152,16 +152,17 @@ func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, se
 	if err != nil {
 		return nil, err
 	}
-	if len(unusedSecurityGroups) > 0 {
-		securityGroupRuleDetails := []SecurityGroupRuleDetails{}
+	securityGroupRuleDetails := []SecurityGroupRuleDetails{}
 
-		for _, sg := range unusedSecurityGroups {
-			rules, err := getSecurityGroupRuleDetails(ctx, ec2Client, sg)
-			if err != nil {
-				return nil, err
-			}
-			securityGroupRuleDetails = append(securityGroupRuleDetails, rules...)
+	for _, sg := range unusedSecurityGroups {
+		rules, err := getSecurityGroupRuleDetails(ctx, ec2Client, sg)
+		if err != nil {
+			return nil, err
 		}
+		securityGroupRuleDetails = append(securityGroupRuleDetails, rules...)
+	}
+
+	if len(securityGroupRuleDetails) > 0 {
 
 		fmt.Println("Ingress/egress rules on unused default security groups:")
 
@@ -173,16 +174,13 @@ func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, se
 		}
 
 		err = w.Flush()
-
-		if err != nil {
-			return nil, err
-		}
-
-		return securityGroupRuleDetails, nil
-	} else {
-		fmt.Println("No unused security groups found")
-		return nil, nil
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return securityGroupRuleDetails, nil
 }
 
 func DeleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule SecurityGroupRuleDetails) error {

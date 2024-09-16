@@ -28,12 +28,12 @@ func main() {
 	securityGroupRuleDetails, err := utils.FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient)
 	if err != nil {
 		log.Fatalf("Error finding unused security group rules: %v", err)
-	}
+	} else if len(securityGroupRuleDetails) == 0 {
+		fmt.Println("No unused security groups found")
+	} else if args.Execute {
 
-	fmt.Println("\n ")
-
-	var failures int = 0
-	if args.Execute && len(securityGroupRuleDetails) > 0 {
+		fmt.Println("\n ")
+		var failures int = 0
 		userConfirmed := common.UserConfirmation()
 		if userConfirmed {
 			log.Println("Starting to delete rules...")
@@ -47,10 +47,11 @@ func main() {
 
 			}
 		}
-	}
 
-	if failures > 0 {
-		log.Fatalf("Failed to delete %d rules", failures)
+		log.Printf("Finished deleting rules.")
+		if failures > 0 {
+			log.Fatalf("Failed to delete %d rules", failures)
+		}
 	}
 
 }
