@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"text/tabwriter"
 
@@ -183,7 +184,7 @@ func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, se
 	return securityGroupRuleDetails, nil
 }
 
-func DeleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule SecurityGroupRuleDetails) error {
+func deleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule SecurityGroupRuleDetails) error {
 	if rule.Rule.Direction == "egress" {
 		_, err := ec2Client.RevokeSecurityGroupEgress(ctx, &ec2.RevokeSecurityGroupEgressInput{
 			GroupId:              &rule.SecurityGroup,
@@ -204,4 +205,21 @@ func DeleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule Se
 	fmt.Printf("Deleted rule %s from security group %s\n", rule.Rule.GroupRuleId, rule.SecurityGroup)
 	return nil
 
+}
+
+func DeleteSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securityGroupRuleDetails []SecurityGroupRuleDetails) {
+	var failures int = 0
+	log.Println("Starting to delete rules...")
+	for _, sgr := range securityGroupRuleDetails {
+		err := deleteSecurityGroupRule(ctx, ec2Client, sgr)
+		if err != nil {
+			log.Printf("Error deleting rule: %v\n", sgr.Rule.GroupRuleId)
+			log.Printf("Error: %v\n", err)
+			failures++
+		}
+	}
+	log.Printf("Finished deleting rules.")
+	if failures > 0 {
+		log.Fatalf("Failed to delete %d rules", failures)
+	}
 }
