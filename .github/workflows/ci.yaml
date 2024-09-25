@@ -26,8 +26,8 @@ jobs:
       - name: Run tests
         run: go list -f '{{.Dir}}/...' -m | xargs go test
 
-  build-bucket-blocker:
-    name: Build bucket-blocker
+  build-fsbp-fix:
+    name: Build fsbp-fix
     needs: [test]
     runs-on: ubuntu-latest
     steps:
@@ -36,7 +36,7 @@ jobs:
       - name: Run build
         uses: ./.github/actions/build
         with:
-          APP: bucket-blocker
+          APP: fsbp-fix
           GO_VERSION: ${{ env.GO_VERSION }}
 
   build-ingress-inquisition:
@@ -59,8 +59,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Lint bucket-blocker
-        run: ./script/dash-lint.sh bucket-blocker
+      - name: Lint fsbp-fix
+        run: ./script/dash-lint.sh fsbp-fix
 
       - name: Lint ingress-inquisition
         run: ./script/dash-lint.sh ingress-inquisition
@@ -71,7 +71,7 @@ jobs:
       contents: write
       packages: write
       issues: write
-    needs: [build-ingress-inquisition, build-bucket-blocker, enforce-dashes]
+    needs: [build-ingress-inquisition, build-fsbp-fix, enforce-dashes]
     runs-on: ubuntu-latest
 
     steps:
@@ -89,8 +89,8 @@ jobs:
       - name: Fetch build
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
         with:
-          name: artifact-bucket-blocker
-          path: bucket-blocker/release
+          name: artifact-fsbp-fix
+          path: fsbp-fix/release
 
       - name: Fetch build
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
