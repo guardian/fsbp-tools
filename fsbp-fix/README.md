@@ -23,7 +23,7 @@ flowchart TB
 
 There are a few extra features, controlled by flags, enumerated below.
 
-## Command line options:
+## Command line options
 
 bucket-blocker takes up to 3 flags:
 
