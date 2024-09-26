@@ -1,4 +1,4 @@
-package main
+package vpcutils
 
 import (
 	"context"
@@ -8,16 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/guardian/fsbp-tools/common"
-	"github.com/guardian/fsbp-tools/ingress-inquisition/utils"
 )
 
-func main() {
+func FixEc2_2(ctx context.Context, profile *string, region *string, execute *bool) {
 
-	ctx := context.Background()
-
-	args := utils.ParseArgs()
-
-	cfg, err := common.LoadDefaultConfig(ctx, args.Profile, args.Region)
+	cfg, err := common.LoadDefaultConfig(ctx, *profile, *region)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -25,15 +20,14 @@ func main() {
 	ec2Client := ec2.NewFromConfig(cfg)
 	securityHubClient := securityhub.NewFromConfig(cfg)
 
-	securityGroupRuleDetails, err := utils.FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient)
+	securityGroupRuleDetails, err := FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient)
 
 	if err != nil {
 		log.Fatalf("Error finding unused security group rules: %v", err)
 	} else if len(securityGroupRuleDetails) == 0 {
 		fmt.Println("No unused security groups found")
-	} else if args.Execute && common.UserConfirmation() {
+	} else if *execute && common.UserConfirmation() {
 		fmt.Println("\n ")
-		utils.DeleteSecurityGroupRules(ctx, ec2Client, securityGroupRuleDetails)
+		DeleteSecurityGroupRules(ctx, ec2Client, securityGroupRuleDetails)
 	}
-
 }

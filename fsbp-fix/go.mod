@@ -9,6 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.55.1
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.49.2
 	github.com/guardian/fsbp-tools/common v0.0.0-00010101000000-000000000000
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.175.0
 )
 
 require (
