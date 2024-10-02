@@ -2,7 +2,7 @@
 
 set -e
 
-APP=$1 # ie bucket-blocker or ingress-inquisition
+APP="fsbp-fix"
 
 pushd () {
     command pushd "$@" > /dev/null
@@ -13,7 +13,7 @@ popd () {
 }
 
 SCRIPT_PATH=$( cd "$(dirname "$0")" ; pwd -P )
-pushd "$SCRIPT_PATH/../$APP"
+pushd "$SCRIPT_PATH/.."
 
 
 
