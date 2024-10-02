@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	"github.com/guardian/fsbp-tools/common"
+	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 )
 
 func FixEc2_2(ctx context.Context, profile *string, region *string, execute *bool) {
