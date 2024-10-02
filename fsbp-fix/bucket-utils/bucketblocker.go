@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
-	common "github.com/guardian/fsbp-tools/common"
+	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 )
 
 func FixS3_8(ctx context.Context, profile string, region string, bucketCount int, exclusions []string, execute bool) {

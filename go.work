@@ -1,5 +1,3 @@
 go 1.22.1
 
-use ./common
-
 use ./fsbp-fix
