@@ -7,7 +7,8 @@ import (
 	"log"
 	"os"
 
-	bucketUtils "github.com/guardian/fsbp-tools/fsbp-fix/bucket-utils"
+	bucketutils "github.com/guardian/fsbp-tools/fsbp-fix/bucket-utils"
+	vpcutils "github.com/guardian/fsbp-tools/fsbp-fix/vpc-utils"
 )
 
 func main() {
@@ -16,7 +17,7 @@ func main() {
 
 	fixS3_8 := flag.NewFlagSet("S3.8", flag.ExitOnError)
 
-	// fixEc2_2 := flag.NewFlagSet("EC2.2", flag.ExitOnError)
+	fixEc2_2 := flag.NewFlagSet("EC2.2", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
 		fmt.Println(len(os.Args))
@@ -55,12 +56,27 @@ func main() {
 			exclusionsSlice = []string{}
 		} else {
 			fmt.Printf("Parsing exclusions")
-			exclusionsSlice = bucketUtils.SplitAndTrim(*exclusions)
+			exclusionsSlice = bucketutils.SplitAndTrim(*exclusions)
 		}
-		bucketUtils.BucketBlocker(ctx, *profile, *region, *bucketCount, exclusionsSlice, *execute)
+		bucketutils.FixS3_8(ctx, *profile, *region, *bucketCount, exclusionsSlice, *execute)
 
-	// case "EC2.2":
-	// 	fixEc2_2.Parse(os.Args[2:])
+	case "EC2.2":
+		execute := fixEc2_2.Bool("execute", false, "Execute the block operation")
+		profile := fixEc2_2.String("profile", "", "AWS profile to use")
+		region := fixEc2_2.String("region", "", "The region of the bucket")
+
+		fixEc2_2.Parse(os.Args[2:])
+
+		if *profile == "" {
+			log.Fatal("Please provide a named AWS profile")
+		}
+
+		if *region == "" {
+			log.Fatal("Please provide a region")
+		}
+
+		vpcutils.FixEc2_2(ctx, profile, region, execute)
+
 	default:
 		fmt.Println("expected 'S3.8' or 'EC2.2' subcommands")
 		os.Exit(1)

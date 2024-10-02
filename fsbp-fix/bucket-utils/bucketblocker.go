@@ -1,4 +1,4 @@
-package utils
+package bucketutils
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	common "github.com/guardian/fsbp-tools/common"
 )
 
-func BucketBlocker(ctx context.Context, profile string, region string, bucketCount int, exclusions []string, execute bool) {
+func FixS3_8(ctx context.Context, profile string, region string, bucketCount int, exclusions []string, execute bool) {
 	cfg, err := common.LoadDefaultConfig(ctx, profile, region)
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
