@@ -9,7 +9,7 @@ control failures that are easy to remediate automatically.
 
 ## Tools
 
-- [bucket-blocker](./bucket-blocker/README.md) - Adds policies to S3 buckets blocking public access.
+- [fsbp-fix](./fsbp-fix/README.md) - Adds policies to S3 buckets blocking public access.
 - [ingress-inquisition](./ingress-inquisition/README.md) - Removes ingress and egress rules from default security groups in VPCs.
 
 ## Local development

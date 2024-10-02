@@ -2,7 +2,7 @@
 
 ## What is this thing?
 
-bucket-blocker is a tool that searces for violations of [FSBP S3.8](https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-8), which states that all buckets should have individual configurations blocking public access.
+fsbp-fix is a tool that searches for and automatically remediates all fixable violations of the AWS FSBP standard. Currently, just [S3.8](https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-8), which states that all buckets should have individual configurations blocking public access.
 
 Once it's found the buckets that are not compliant, it skips over any that are in CloudFormation stacks (to avoid introducing stack drift), and then blocks public access to the remaining buckets.
 
@@ -23,9 +23,9 @@ flowchart TB
 
 There are a few extra features, controlled by flags, enumerated below.
 
-## Command line options:
+## Command line options
 
-bucket-blocker takes up to 3 flags:
+fsbp-fix takes a subcommand and up to 3 flags:
 
 - **profile**: _Required._ The profile to use when connecting to AWS.
 
@@ -42,27 +42,13 @@ bucket-blocker takes up to 3 flags:
 
 You will also need credentials for the relevant AWS account from Janus.
 
-## Running the binary
-
-This application is downloadable from brew. You'll need the guardian's brew tap
-installed before you can install the application.
-
-To do this all at once, run the following command:
-
-```bash
-brew tap guardian/homebrew-devtools && brew install bucket-blocker
-```
-
-You can also download the binary directly from the Releases page on GitHub, or
-build it from source.
-
 ## Local development
 
 While developing locally, you can test the application using the following
 command from the bucket-blocker subdirectory, without needing to build the binary:
 
 ```bash
-go run main.go -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
+go run main.go S3.8 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 ```
 
 ## Releasing to brew
