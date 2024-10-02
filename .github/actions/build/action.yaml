@@ -19,9 +19,9 @@ runs:
         go-version: ${{ inputs.GO_VERSION }}
     - name: Build
       shell: bash
-      run: ./script/build.sh ${{ inputs.APP }}
+      run: ./script/build.sh
 
     - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
       with:
-        path: ${{ inputs.APP }}/release/**/${{ inputs.APP }}_*
+        path: release/**/${{ inputs.APP }}_*
         name: artifact-${{ inputs.APP }}
