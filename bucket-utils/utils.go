@@ -3,7 +3,7 @@ package bucketutils
 import (
 	"strings"
 
-	"github.com/guardian/fsbp-tools/common"
+	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 )
 
 func SplitAndTrim(str string) []string {
