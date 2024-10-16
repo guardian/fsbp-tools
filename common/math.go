@@ -18,10 +18,10 @@ func Complement[T comparable](slice []T, toRemove []T) []T {
 		if !found {
 			complement = append(complement, element)
 		} else {
-			fmt.Printf("\nRemoving: '%v' from slice", element)
+			fmt.Printf("\nExcluding: '%v'", element)
 		}
 	}
-	fmt.Println("") //Tidy up the log output
+	fmt.Println("") //This ensures sure the log output is tidy
 
 	return complement
 }
