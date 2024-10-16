@@ -71,7 +71,7 @@ While developing locally, you can test the application using the following
 command from the bucket-blocker subdirectory, without needing to build the binary:
 
 ```bash
-go run main.go S3.8 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
+go run main.go s3.8 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 ```
 
 </details>
@@ -83,7 +83,7 @@ go run main.go S3.8 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 The minimal flags required to resolve EC2.2 are as follows. This will execute in dry run mode.
 
 ```bash
-fsbp-fix EC2.2 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
+fsbp-fix ec2.2 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 ```
 
 <details>
@@ -126,7 +126,7 @@ While developing locally, you can test the application using the following
 command from the ingress-inquisitor subdirectory, without needing to build the binary:
 
 ```bash
-go run main.go EC2.2 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
+go run main.go ec2.2 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 ```
 
 </details>
