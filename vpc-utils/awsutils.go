@@ -116,16 +116,33 @@ func getSecurityGroupRuleDetails(ctx context.Context, ec2Client *ec2.Client, gro
 
 func findUnusedSecurityGroups(ctx context.Context, ec2Client *ec2.Client, sgIds []string) ([]string, error) {
 
+	allNetworkInterfaces := []types.NetworkInterface{}
 	securityGroupsInNetworkInterfaces := []string{}
+	maxInterfaceResults := int32(100)
 
-	maxInterfaceResults := int32(1000)
-	res, err := ec2Client.DescribeNetworkInterfaces(ctx, &ec2.DescribeNetworkInterfacesInput{
+	firstNetworkInterfaces, err := ec2Client.DescribeNetworkInterfaces(ctx, &ec2.DescribeNetworkInterfacesInput{
 		MaxResults: &maxInterfaceResults,
 	})
 	if err != nil {
 		return nil, err
 	}
-	for _, networkInterface := range res.NetworkInterfaces {
+
+	allNetworkInterfaces = append(allNetworkInterfaces, firstNetworkInterfaces.NetworkInterfaces...)
+
+	var nextToken = firstNetworkInterfaces.NextToken
+	for nextToken != nil {
+		networkInterfaces, err := ec2Client.DescribeNetworkInterfaces(ctx, &ec2.DescribeNetworkInterfacesInput{
+			MaxResults: &maxInterfaceResults,
+			NextToken:  nextToken,
+		})
+		if err != nil {
+			return nil, err
+		}
+		allNetworkInterfaces = append(allNetworkInterfaces, networkInterfaces.NetworkInterfaces...)
+		nextToken = networkInterfaces.NextToken
+	}
+
+	for _, networkInterface := range allNetworkInterfaces {
 		for _, group := range networkInterface.Groups {
 			securityGroupsInNetworkInterfaces = append(securityGroupsInNetworkInterfaces, *group.GroupId)
 		}
