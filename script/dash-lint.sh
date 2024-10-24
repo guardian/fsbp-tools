@@ -11,7 +11,7 @@ function bad_delimiter_check() {
     FAILURES=$(grep -ril "$WRONG_NAME" "$ROOT_DIR")
 
     if [ -n "$FAILURES" ]; then
-        echo "$TOOL_NAME has a dash in it, and inconsistencies in the codebase can cause major problems, please correct the spelling." >&2
+        echo "$TOOL_NAME has a dash in it, not a '$DELIMITER'. Inconsistencies in the codebase can cause major problems, please correct the spelling." >&2
         printf "The following files contain the incorrect string '%s':\n\n" "$WRONG_NAME" >&2
         echo "$FAILURES" >&2
         exit 1;
