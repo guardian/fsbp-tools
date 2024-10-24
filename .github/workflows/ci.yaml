@@ -39,6 +39,13 @@ jobs:
           APP: fsbp-fix
           GO_VERSION: ${{ env.GO_VERSION }}
 
+  commit-lint:
+    runs-on: ubuntu-latest
+    name: Run Commitlint
+    steps:
+      - name: Conventional Commitlint
+        uses: opensource-nepal/commitlint@02e7ff4f7f1e4b1f8e2955b114bfa9271f1c7c97 # v1.3.0
+
   enforce-dashes:
     name: Enforce dashes in project names
     runs-on: ubuntu-latest
@@ -55,7 +62,7 @@ jobs:
       contents: write
       packages: write
       issues: write
-    needs: [build-fsbp-fix, enforce-dashes]
+    needs: [build-fsbp-fix, commit-lint, enforce-dashes]
     runs-on: ubuntu-latest
 
     steps:
