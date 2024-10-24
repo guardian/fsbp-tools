@@ -73,6 +73,7 @@ command from the bucket-blocker subdirectory, without needing to build the binar
 ```bash
 go run main.go S3.8 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 ```
+
 </details>
 
 ## EC2.2
@@ -84,6 +85,7 @@ The minimal flags required to resolve EC2.2 are as follows. This will execute in
 ```bash
 fsbp-fix EC2.2 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 ```
+
 <details>
   <summary>Details</summary>
 AWS Security Hub Control [EC2.2](https://docs.aws.amazon.com/securityhub/latest/userguide/ec2-controls.html#ec2-2) states that default security groups in VPCs should not allow any inbound or outbound traffic. VPCs set up recently are compliant by default, but older VPCs are not.
@@ -103,6 +105,7 @@ flowchart TB
     ruleBreak --> Nope --> break
 
 ```
+
 </details>
 
 <details>
@@ -114,6 +117,7 @@ ingress-inquisition takes the following flags:
 - **region**: _Required._ The region you want to search in.
 
 - **execute**: _Optional._ Takes no value. If present, it will ask the user to confirm, then delete the rules. Otherwise, it will just list the rules that would have been deleted.
+
 </details>
 
 <details>
@@ -124,6 +128,7 @@ command from the ingress-inquisitor subdirectory, without needing to build the b
 ```bash
 go run main.go EC2.2 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 ```
+
 </details>
 
 <details>
