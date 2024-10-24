@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 
 TOOL_NAME=$1
-CURRENT_FILE=$(basename "${BASH_SOURCE}")
 ROOT_DIR=$(git rev-parse --show-toplevel)
 
 function bad_delimiter_check() {
     DELIMITER=$1
-    # shellcheck disable=SC2116
+    # shellcheck disable=SC2116 # Without echo, WRONG_NAME will be empty
     WRONG_NAME=$(echo "${TOOL_NAME//-/$DELIMITER}")
     echo "Checking for $WRONG_NAME in the codebase..."
-    FAILURES=$(grep -ril "$WRONG_NAME" "$ROOT_DIR" --exclude "$CURRENT_FILE" --exclude-dir=".git")
+    FAILURES=$(grep -ril "$WRONG_NAME" "$ROOT_DIR")
 
     if [ -n "$FAILURES" ]; then
         echo "$TOOL_NAME has a dash in it, and inconsistencies in the codebase can cause major problems, please correct the spelling." >&2
