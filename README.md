@@ -76,7 +76,7 @@ go run main.go s3.8 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 
 </details>
 
-## EC2.2
+## EC2.2 - VPC default security groups should not allow inbound or outbound traffic
 
 ### Usage
 
