@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.202.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.72.0
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.55.8
-	github.com/aws/aws-sdk-go-v2/service/sts v1.33.3
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.12
 )
 
 require (
