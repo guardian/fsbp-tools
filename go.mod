@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.28.7
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.2
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.58.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.206.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.72.0
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.55.8
@@ -27,5 +27,4 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.24.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.7 // indirect
 	github.com/aws/smithy-go v1.22.2 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 )
