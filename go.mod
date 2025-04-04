@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.58.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.206.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.78.1
-	github.com/aws/aws-sdk-go-v2/service/securityhub v1.55.8
+	github.com/aws/aws-sdk-go-v2/service/securityhub v1.57.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.17
 )
 
