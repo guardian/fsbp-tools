@@ -3,7 +3,7 @@ module github.com/guardian/fsbp-tools/fsbp-fix
 go 1.23.2
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.29.12
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.58.0
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.59.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.206.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.79.1
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.57.0
