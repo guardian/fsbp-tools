@@ -18,5 +18,13 @@
         ]
       }
     ]
-  ]
+  ],
+  "analyzeCommits": {
+    "releaseRules": [
+      {
+        "type": "chore(deps)",
+        "release": "patch"
+      }
+    ]
+  }
 }
