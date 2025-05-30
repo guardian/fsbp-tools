@@ -151,9 +151,9 @@ func findUnusedSecurityGroups(ctx context.Context, ec2Client *ec2.Client, sgIds 
 	return common.Complement(sgIds, securityGroupsInNetworkInterfaces), nil
 }
 
-func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securityHubClient *securityhub.Client) ([]SecurityGroupRuleDetails, error) {
+func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securityHubClient *securityhub.Client, accountId string, region string) ([]SecurityGroupRuleDetails, error) {
 
-	findings, err := common.ReturnFindings(ctx, securityHubClient, "EC2.2", 100)
+	findings, err := common.ReturnFindings(ctx, securityHubClient, "EC2.2", 100, accountId, region)
 	if err != nil {
 		return nil, err
 	}

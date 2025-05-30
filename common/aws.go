@@ -36,7 +36,25 @@ func LoadDefaultConfig(ctx context.Context, profile string, region string) (aws.
 	return cfg, nil
 }
 
-func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32) (*securityhub.GetFindingsOutput, error) {
+func GetAccountId(ctx context.Context, profile string, region string) (string, error) {
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithSharedConfigProfile(profile),
+		config.WithRegion(region),
+	)
+	if err != nil {
+		return "", fmt.Errorf("error loading config: %w", err)
+	}
+
+	stsClient := sts.NewFromConfig(cfg)
+	resp, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil {
+		return "", fmt.Errorf("error getting caller identity: %w", err)
+	}
+
+	return *resp.Account, nil
+}
+
+func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32, accountId string, region string) (*securityhub.GetFindingsOutput, error) {
 
 	complianceStatus := "PASSED"
 	recordState := "ACTIVE"
@@ -57,10 +75,23 @@ func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, 
 				Value:      &recordState,
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
+			AwsAccountId: []shTypes.StringFilter{{
+				Value:      &accountId,
+				Comparison: shTypes.StringFilterComparisonEquals,
+			}},
+			Region: []shTypes.StringFilter{{
+				Value:      &region,
+				Comparison: shTypes.StringFilterComparisonEquals,
+			}},
 		},
 	})
+
 	if err != nil {
 		return nil, err
+	}
+
+	for _, finding := range findings.Findings {
+		fmt.Printf("Found finding: %s, %s\n", *finding.Resources[0].Id, *finding.AwsAccountId)
 	}
 	return findings, nil
 }
