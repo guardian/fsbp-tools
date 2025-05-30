@@ -24,7 +24,6 @@ func FixEc2_2(ctx context.Context, profile *string, region *string, execute *boo
 	if err != nil {
 		log.Fatalf("Error getting account ID: %v", err)
 	}
-	fmt.Println("Account ID:", accountId)
 
 	securityGroupRuleDetails, err := FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient, accountId, *region)
 

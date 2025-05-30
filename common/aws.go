@@ -90,8 +90,5 @@ func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, 
 		return nil, err
 	}
 
-	for _, finding := range findings.Findings {
-		fmt.Printf("Found finding: %s, %s\n", *finding.Resources[0].Id, *finding.AwsAccountId)
-	}
 	return findings, nil
 }

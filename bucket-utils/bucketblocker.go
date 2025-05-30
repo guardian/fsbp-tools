@@ -2,7 +2,6 @@ package bucketutils
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -21,7 +20,6 @@ func FixS3_8(ctx context.Context, profile string, region string, bucketCount int
 	if err != nil {
 		log.Fatalf("Error getting account ID: %v", err)
 	}
-	fmt.Println("Account ID:", accountId)
 
 	securityHubClient := securityhub.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
