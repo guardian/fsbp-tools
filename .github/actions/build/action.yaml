@@ -16,7 +16,8 @@ runs:
     - name: Setup Go
       uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
       with:
-        go-version: ${{ inputs.GO_VERSION }}
+          go-version-file: go.mod
+          cache: false
     - name: Build
       shell: bash
       run: ./script/build.sh

@@ -16,10 +16,15 @@ func FixS3_8(ctx context.Context, profile string, region string, bucketCount int
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
+	accountId, err := common.GetAccountId(ctx, profile, region)
+	if err != nil {
+		log.Fatalf("Error getting account ID: %v", err)
+	}
+
 	securityHubClient := securityhub.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
 	cfnClient := cloudformation.NewFromConfig(cfg)
-	bucketsToBlock, err := FindBucketsToBlock(ctx, securityHubClient, s3Client, cfnClient, int32(bucketCount), exclusions)
+	bucketsToBlock, err := FindBucketsToBlock(ctx, securityHubClient, s3Client, cfnClient, int32(bucketCount), exclusions, accountId, region)
 	if err != nil {
 		log.Fatalf("Error working out which buckets need blocking: %v", err)
 	}

@@ -76,7 +76,7 @@ func main() {
 			log.Fatal("Please provide a region")
 		}
 
-		vpcutils.FixEc2_2(ctx, profile, region, execute)
+		vpcutils.FixEc2_2(ctx, *profile, *region, *execute)
 
 	default:
 		fmt.Println("expected 's3.8' or 'ec2.2' subcommands")

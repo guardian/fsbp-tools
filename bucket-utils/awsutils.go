@@ -14,10 +14,10 @@ import (
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 )
 
-func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Client, bucketCount int32) ([]string, error) {
+func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Client, bucketCount int32, accountId string, region string) ([]string, error) {
 	controlId := "S3.8"
 
-	findings, err := common.ReturnFindings(ctx, securityHubClient, controlId, bucketCount)
+	findings, err := common.ReturnFindings(ctx, securityHubClient, controlId, bucketCount, accountId, region)
 	if err != nil {
 		return nil, err
 	}
@@ -107,8 +107,8 @@ func listBucketsInStacks(ctx context.Context, cfnClient *cloudformation.Client) 
 	return bucketsInAStack
 }
 
-func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client, bucketCount int32, exclusions []string) ([]string, error) {
-	failingBuckets, err := findFailingBuckets(ctx, securityHubClient, bucketCount)
+func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Client, s3Client *s3.Client, cfnClient *cloudformation.Client, bucketCount int32, exclusions []string, accountId string, region string) ([]string, error) {
+	failingBuckets, err := findFailingBuckets(ctx, securityHubClient, bucketCount, accountId, region)
 	if err != nil {
 		return nil, err
 	}
