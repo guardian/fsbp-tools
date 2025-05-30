@@ -17,6 +17,10 @@ runs:
       uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
       with:
         go-version: ${{ inputs.GO_VERSION }}
+
+    - name: Verify Go dependency checksums
+      run: go mod verify
+
     - name: Build
       shell: bash
       run: ./script/build.sh
