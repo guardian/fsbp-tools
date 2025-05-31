@@ -36,31 +36,48 @@ func LoadDefaultConfig(ctx context.Context, profile string, region string) (aws.
 	return cfg, nil
 }
 
-func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32) (*securityhub.GetFindingsOutput, error) {
-
-	complianceStatus := "PASSED"
-	recordState := "ACTIVE"
-
-	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
-	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
+func findingsInput(controlId string, maxResults int32, nextToken *string) *securityhub.GetFindingsInput {
+	return &securityhub.GetFindingsInput{
 		MaxResults: &maxResults,
+		NextToken:  nextToken,
 		Filters: &shTypes.AwsSecurityFindingFilters{
 			ComplianceSecurityControlId: []shTypes.StringFilter{{
 				Value:      &controlId,
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
 			ComplianceStatus: []shTypes.StringFilter{{
-				Value:      &complianceStatus,
+				Value:      aws.String("PASSED"),
 				Comparison: shTypes.StringFilterComparisonNotEquals,
 			}},
 			RecordState: []shTypes.StringFilter{{
-				Value:      &recordState,
+				Value:      aws.String("ACTIVE"),
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
 		},
-	})
+	}
+}
+
+func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32) (*[]shTypes.AwsSecurityFinding, error) {
+
+	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
+	var page = 1 //TODO for debugging. Delete later
+	findingsPage, err := securityHubClient.GetFindings(ctx, findingsInput(controlId, maxResults, nil))
 	if err != nil {
 		return nil, err
 	}
-	return findings, nil
+
+	allFindings := []shTypes.AwsSecurityFinding{}
+	allFindings = append(allFindings, findingsPage.Findings...)
+	var nextToken = findingsPage.NextToken
+	for nextToken != nil {
+		page++
+		fmt.Printf("Retrieving page %d of Security Hub control failures for %s\n", page, controlId)
+		findingsPage, err := securityHubClient.GetFindings(ctx, findingsInput(controlId, maxResults, nextToken))
+		if err != nil {
+			return nil, err
+		}
+		allFindings = append(allFindings, findingsPage.Findings...)
+		nextToken = findingsPage.NextToken
+	}
+	return &(allFindings), nil
 }

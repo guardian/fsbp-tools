@@ -22,7 +22,7 @@ func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Clie
 		return nil, err
 	}
 
-	findingsArr := findings.Findings
+	findingsArr := *findings
 
 	var bucketsToBlock []string
 	for _, finding := range findingsArr {
