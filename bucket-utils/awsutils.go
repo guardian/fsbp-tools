@@ -76,12 +76,10 @@ func getAllStackResources(ctx context.Context, cfnClient *cloudformation.Client,
 			// This limit is almost never reached.
 			NextToken: nextToken,
 		}
-		fmt.Printf("Next token: %v\n", input.NextToken)
 		if nextToken != nil {
 			input.NextToken = nextToken
 		}
 		resp, err := cfnClient.ListStackResources(ctx, input)
-		fmt.Printf("Found %d resources %s\n", len(resp.StackResourceSummaries), stackName)
 		if err != nil {
 			return nil, nil, err
 		}

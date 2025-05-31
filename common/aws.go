@@ -18,10 +18,7 @@ type pageFetcherFunc[T any] func(nextToken *string) (items []T, next *string, er
 func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) {
 	var allItems []T
 	var nextToken *string
-	var page int32 = 0 //For debugging. Delete if not needed
 	for {
-		page++
-		fmt.Printf("Fetching page %d...\n", page)
 		items, next, err := fetch(nextToken)
 		if err != nil {
 			return nil, err
