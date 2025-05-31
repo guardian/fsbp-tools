@@ -15,7 +15,7 @@ import (
 // Generic paginator for AWS SDK v2
 type pageFetcherFunc[T any] func(nextToken *string) (items []T, next *string, err error)
 
-func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) {
+func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) { //TODO test this
 	var allItems []T
 	var nextToken *string
 	var page int32 = 0 //For debugging. Delete if not needed
@@ -83,24 +83,18 @@ func findingsInput(controlId string, maxResults int32, nextToken *string) *secur
 func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32) (*[]shTypes.AwsSecurityFinding, error) {
 
 	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
-	var page = 1 //TODO for debugging. Delete later
-	findingsPage, err := securityHubClient.GetFindings(ctx, findingsInput(controlId, maxResults, nil))
+
+	allFindings, err := Paginate(func(nextToken *string) ([]shTypes.AwsSecurityFinding, *string, error) {
+		input := findingsInput(controlId, maxResults, nextToken)
+		resp, err := securityHubClient.GetFindings(ctx, input)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return resp.Findings, resp.NextToken, nil
+	})
 	if err != nil {
 		return nil, err
-	}
-
-	allFindings := []shTypes.AwsSecurityFinding{}
-	allFindings = append(allFindings, findingsPage.Findings...)
-	var nextToken = findingsPage.NextToken
-	for nextToken != nil {
-		page++
-		fmt.Printf("Retrieving page %d of Security Hub control failures for %s\n", page, controlId)
-		findingsPage, err := securityHubClient.GetFindings(ctx, findingsInput(controlId, maxResults, nextToken))
-		if err != nil {
-			return nil, err
-		}
-		allFindings = append(allFindings, findingsPage.Findings...)
-		nextToken = findingsPage.NextToken
 	}
 	return &(allFindings), nil
 }
