@@ -35,21 +35,19 @@ func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Clie
 func getAllStackSummaries(ctx context.Context, cfnClient *cloudformation.Client) ([]cfnTypes.StackSummary, error) {
 	var allStackSummaries []cfnTypes.StackSummary
 
-	firstStacks, err := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{})
+	allStackSummaries, err := common.Paginate(func(nextToken *string) ([]cfnTypes.StackSummary, *string, error) {
+		input := &cloudformation.ListStacksInput{}
+		if nextToken != nil {
+			input.NextToken = nextToken
+		}
+		resp, err := cfnClient.ListStacks(ctx, input)
+		if err != nil {
+			return nil, nil, err
+		}
+		return resp.StackSummaries, resp.NextToken, nil
+	})
 	if err != nil {
 		return nil, err
-	}
-	allStackSummaries = append(allStackSummaries, firstStacks.StackSummaries...)
-
-	var nextToken = firstStacks.NextToken
-	for nextToken != nil {
-		stacks, err := cfnClient.ListStacks(ctx, &cloudformation.ListStacksInput{NextToken: nextToken})
-		if err != nil {
-			return nil, err
-		}
-		allStackSummaries = append(allStackSummaries, stacks.StackSummaries...)
-		nextToken = stacks.NextToken
-
 	}
 	fmt.Println("Found " + fmt.Sprint(len(allStackSummaries)) + " stacks in account.")
 	return allStackSummaries, nil

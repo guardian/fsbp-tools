@@ -12,6 +12,29 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
+// Generic paginator for AWS SDK v2
+type pageFetcherFunc[T any] func(nextToken *string) (items []T, next *string, err error)
+
+func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) {
+	var allItems []T
+	var nextToken *string
+	var page int32 = 0 //For debugging. Delete if not needed
+	for {
+		page++
+		fmt.Printf("Fetching page %d...\n", page)
+		items, next, err := fetch(nextToken)
+		if err != nil {
+			return nil, err
+		}
+		allItems = append(allItems, items...)
+		if next == nil {
+			break
+		}
+		nextToken = next
+	}
+	return allItems, nil
+}
+
 func validateCredentials(ctx context.Context, stsClient *sts.Client, profile string) (*sts.GetCallerIdentityOutput, error) {
 	resp, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
