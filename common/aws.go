@@ -15,7 +15,7 @@ import (
 // Generic paginator for AWS SDK v2
 type pageFetcherFunc[T any] func(nextToken *string) (items []T, next *string, err error)
 
-func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) { //TODO test this
+func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) {
 	var allItems []T
 	var nextToken *string
 	var page int32 = 0 //For debugging. Delete if not needed
