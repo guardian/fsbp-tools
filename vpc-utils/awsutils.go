@@ -35,6 +35,7 @@ type SecurityGroupRuleDetails struct {
 func getSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, groupId string) ([]securityGroupRule, error) {
 	fieldName := "group-id"
 	rules, err := ec2Client.DescribeSecurityGroupRules(ctx, &ec2.DescribeSecurityGroupRulesInput{
+		//No MaxResults required. If this parameter is not specified, then all items are returned
 		Filters: []types.Filter{
 			{
 				Name:   &fieldName,
