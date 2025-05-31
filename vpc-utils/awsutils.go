@@ -159,7 +159,8 @@ func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, se
 	}
 
 	securityGroups := []string{}
-	for _, finding := range findings.Findings {
+
+	for _, finding := range findings {
 		for _, resource := range finding.Resources {
 			sgId := IdFromArn(*resource.Id)
 			securityGroups = append(securityGroups, sgId)

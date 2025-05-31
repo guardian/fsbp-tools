@@ -54,25 +54,21 @@ func GetAccountId(ctx context.Context, profile string, region string) (string, e
 	return *resp.Account, nil
 }
 
-func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32, accountId string, region string) (*securityhub.GetFindingsOutput, error) {
-
-	complianceStatus := "PASSED"
-	recordState := "ACTIVE"
-
-	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
-	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
+func findingsInput(controlId string, maxResults int32, nextToken *string, accountId string, region string) *securityhub.GetFindingsInput {
+	return &securityhub.GetFindingsInput{
 		MaxResults: &maxResults,
+		NextToken:  nextToken,
 		Filters: &shTypes.AwsSecurityFindingFilters{
 			ComplianceSecurityControlId: []shTypes.StringFilter{{
 				Value:      &controlId,
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
 			ComplianceStatus: []shTypes.StringFilter{{
-				Value:      &complianceStatus,
+				Value:      aws.String("PASSED"),
 				Comparison: shTypes.StringFilterComparisonNotEquals,
 			}},
 			RecordState: []shTypes.StringFilter{{
-				Value:      &recordState,
+				Value:      aws.String("ACTIVE"),
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
 			AwsAccountId: []shTypes.StringFilter{{
@@ -84,11 +80,27 @@ func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, 
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
 		},
-	})
+	}
+}
+func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32, accountId string, region string) ([]shTypes.AwsSecurityFinding, error) {
 
+	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
+
+	findingsPage, err := securityHubClient.GetFindings(ctx, findingsInput(controlId, maxResults, nil, accountId, region))
 	if err != nil {
 		return nil, err
 	}
 
-	return findings, nil
+	allFindings := []shTypes.AwsSecurityFinding{}
+	allFindings = append(allFindings, findingsPage.Findings...)
+	var nextToken = findingsPage.NextToken
+	for nextToken != nil {
+		findingsPage, err := securityHubClient.GetFindings(ctx, findingsInput(controlId, maxResults, nextToken, accountId, region))
+		if err != nil {
+			return nil, err
+		}
+		allFindings = append(allFindings, findingsPage.Findings...)
+		nextToken = findingsPage.NextToken
+	}
+	return allFindings, nil
 }

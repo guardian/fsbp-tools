@@ -22,10 +22,8 @@ func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Clie
 		return nil, err
 	}
 
-	findingsArr := findings.Findings
-
 	var bucketsToBlock []string
-	for _, finding := range findingsArr {
+	for _, finding := range findings {
 		for _, resource := range finding.Resources {
 			bucketsToBlock = append(bucketsToBlock, strings.TrimPrefix(*resource.Id, "arn:aws:s3:::"))
 		}
