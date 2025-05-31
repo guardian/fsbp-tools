@@ -86,6 +86,9 @@ func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, 
 
 	allFindings, err := Paginate(func(nextToken *string) ([]shTypes.AwsSecurityFinding, *string, error) {
 		input := findingsInput(controlId, maxResults, nextToken)
+		if nextToken != nil {
+			input.NextToken = nextToken
+		}
 		resp, err := securityHubClient.GetFindings(ctx, input)
 		if err != nil {
 			return nil, nil, err
