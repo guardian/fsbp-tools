@@ -102,6 +102,7 @@ func findingsInput(controlId string, maxResults int32, nextToken *string, accoun
 		},
 	}
 }
+
 func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32, accountId string, region string) ([]shTypes.AwsSecurityFinding, error) {
 
 	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)

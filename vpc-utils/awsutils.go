@@ -118,7 +118,7 @@ func getSecurityGroupRuleDetails(ctx context.Context, ec2Client *ec2.Client, gro
 func findUnusedSecurityGroups(ctx context.Context, ec2Client *ec2.Client, sgIds []string) ([]string, error) {
 
 	securityGroupsInNetworkInterfaces := []string{}
-	maxInterfaceResults := int32(10)
+	maxInterfaceResults := int32(100)
 
 	allNetworkInterfaces, err := common.Paginate(func(nextToken *string) ([]types.NetworkInterface, *string, error) {
 		input := &ec2.DescribeNetworkInterfacesInput{
