@@ -12,7 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-// Generic paginator for AWS SDK v2
+// Generic paginator for AWS SDK v2.
+// This function takes a function that fetches items with pagination support.
+// The paginator will keep calling the fetch function until there are no more items to fetch (next token is nil).
+// Paginate returns a slice of items, after running out of nextTokens.
 type pageFetcherFunc[T any] func(nextToken *string) (items []T, next *string, err error)
 
 func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) {
