@@ -35,6 +35,7 @@ type SecurityGroupRuleDetails struct {
 func getSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, groupId string) ([]securityGroupRule, error) {
 	fieldName := "group-id"
 	rules, err := ec2Client.DescribeSecurityGroupRules(ctx, &ec2.DescribeSecurityGroupRulesInput{
+		//No pagination needed. If MaxResults is not specified, then all items are returned
 		Filters: []types.Filter{
 			{
 				Name:   &fieldName,
@@ -116,30 +117,24 @@ func getSecurityGroupRuleDetails(ctx context.Context, ec2Client *ec2.Client, gro
 
 func findUnusedSecurityGroups(ctx context.Context, ec2Client *ec2.Client, sgIds []string) ([]string, error) {
 
-	allNetworkInterfaces := []types.NetworkInterface{}
 	securityGroupsInNetworkInterfaces := []string{}
 	maxInterfaceResults := int32(100)
 
-	firstNetworkInterfaces, err := ec2Client.DescribeNetworkInterfaces(ctx, &ec2.DescribeNetworkInterfacesInput{
-		MaxResults: &maxInterfaceResults,
+	allNetworkInterfaces, err := common.Paginate(func(nextToken *string) ([]types.NetworkInterface, *string, error) {
+		input := &ec2.DescribeNetworkInterfacesInput{
+			MaxResults: &maxInterfaceResults,
+		}
+		if nextToken != nil {
+			input.NextToken = nextToken
+		}
+		resp, err := ec2Client.DescribeNetworkInterfaces(ctx, input)
+		if err != nil {
+			return nil, nil, err
+		}
+		return resp.NetworkInterfaces, resp.NextToken, nil
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	allNetworkInterfaces = append(allNetworkInterfaces, firstNetworkInterfaces.NetworkInterfaces...)
-
-	var nextToken = firstNetworkInterfaces.NextToken
-	for nextToken != nil {
-		networkInterfaces, err := ec2Client.DescribeNetworkInterfaces(ctx, &ec2.DescribeNetworkInterfacesInput{
-			MaxResults: &maxInterfaceResults,
-			NextToken:  nextToken,
-		})
-		if err != nil {
-			return nil, err
-		}
-		allNetworkInterfaces = append(allNetworkInterfaces, networkInterfaces.NetworkInterfaces...)
-		nextToken = networkInterfaces.NextToken
 	}
 
 	for _, networkInterface := range allNetworkInterfaces {
@@ -159,7 +154,8 @@ func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, se
 	}
 
 	securityGroups := []string{}
-	for _, finding := range findings.Findings {
+
+	for _, finding := range findings {
 		for _, resource := range finding.Resources {
 			sgId := IdFromArn(*resource.Id)
 			securityGroups = append(securityGroups, sgId)

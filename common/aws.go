@@ -12,6 +12,29 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
+// Generic paginator for AWS SDK v2.
+// This function takes a function that fetches items with pagination support.
+// The paginator will keep calling the fetch function until there are no more items to fetch (next token is nil).
+// Paginate returns a slice of items, after running out of nextTokens.
+type pageFetcherFunc[T any] func(nextToken *string) (items []T, next *string, err error)
+
+func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) {
+	var allItems []T
+	var nextToken *string
+	for {
+		items, next, err := fetch(nextToken)
+		if err != nil {
+			return nil, err
+		}
+		allItems = append(allItems, items...)
+		if next == nil {
+			break
+		}
+		nextToken = next
+	}
+	return allItems, nil
+}
+
 func validateCredentials(ctx context.Context, stsClient *sts.Client, profile string) (*sts.GetCallerIdentityOutput, error) {
 	resp, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
@@ -54,25 +77,21 @@ func GetAccountId(ctx context.Context, profile string, region string) (string, e
 	return *resp.Account, nil
 }
 
-func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32, accountId string, region string) (*securityhub.GetFindingsOutput, error) {
-
-	complianceStatus := "PASSED"
-	recordState := "ACTIVE"
-
-	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
-	findings, err := securityHubClient.GetFindings(ctx, &securityhub.GetFindingsInput{
+func findingsInput(controlId string, maxResults int32, nextToken *string, accountId string, region string) *securityhub.GetFindingsInput {
+	return &securityhub.GetFindingsInput{
 		MaxResults: &maxResults,
+		NextToken:  nextToken,
 		Filters: &shTypes.AwsSecurityFindingFilters{
 			ComplianceSecurityControlId: []shTypes.StringFilter{{
 				Value:      &controlId,
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
 			ComplianceStatus: []shTypes.StringFilter{{
-				Value:      &complianceStatus,
+				Value:      aws.String("PASSED"),
 				Comparison: shTypes.StringFilterComparisonNotEquals,
 			}},
 			RecordState: []shTypes.StringFilter{{
-				Value:      &recordState,
+				Value:      aws.String("ACTIVE"),
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
 			AwsAccountId: []shTypes.StringFilter{{
@@ -84,11 +103,24 @@ func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, 
 				Comparison: shTypes.StringFilterComparisonEquals,
 			}},
 		},
-	})
+	}
+}
 
+func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32, accountId string, region string) ([]shTypes.AwsSecurityFinding, error) {
+
+	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
+
+	allFindings, err := Paginate(func(nextToken *string) ([]shTypes.AwsSecurityFinding, *string, error) {
+		input := findingsInput(controlId, maxResults, nextToken, accountId, region)
+		resp, err := securityHubClient.GetFindings(ctx, input)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return resp.Findings, resp.NextToken, nil
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	return findings, nil
+	return allFindings, nil
 }
