@@ -2,6 +2,12 @@
   "branches": ["main", "nt/release"],
   "plugins": [
     "@semantic-release/commit-analyzer",
+    {
+      "releaseRules": [
+      { "type": "chore", "scope": "deps", "release": "patch" }
+    ]
+
+  },
     "@semantic-release/release-notes-generator",
     [
       "@semantic-release/github",
@@ -18,13 +24,5 @@
         ]
       }
     ]
-  ],
-  "analyzeCommits": {
-    "releaseRules": [
-      {
-        "type": "chore(deps)",
-        "release": "patch"
-      }
-    ]
-  }
+  ]
 }
