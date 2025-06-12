@@ -7,6 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/account"
+	acc "github.com/aws/aws-sdk-go-v2/service/account/types"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	shTypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -48,6 +50,28 @@ func GetAccountId(ctx context.Context, cfg aws.Config) (string, error) {
 	}
 
 	return *resp.Account, nil
+}
+
+func ListEnabledRegions(ctx context.Context, profile *string) ([]string, error) {
+	fmt.Printf("No region provided, running globally in all enabled regions\n")
+	cfg, err := Auth(ctx, *profile, "eu-west-1")
+	ExitOnError(err, "Failed to authenticate with AWS")
+	accountClient := account.NewFromConfig(cfg)
+	resp, err := accountClient.ListRegions(ctx, &account.ListRegionsInput{
+		RegionOptStatusContains: []acc.RegionOptStatus{acc.RegionOptStatusEnabled, acc.RegionOptStatusEnabledByDefault},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("Region count: %d\n", len(resp.Regions))
+	enabledRegions := []string{}
+	for _, region := range resp.Regions {
+		if region.RegionName != nil {
+			enabledRegions = append(enabledRegions, *region.RegionName)
+		}
+	}
+	return enabledRegions, nil
 }
 
 func findingsInput(controlId string, maxResults int32, accountId string, region string) *securityhub.GetFindingsInput {
