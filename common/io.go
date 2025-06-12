@@ -3,6 +3,7 @@ package common
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -17,4 +18,10 @@ func UserConfirmation() bool {
 		fmt.Println("Error reading input: " + err.Error())
 	}
 	return strings.ToLower(strings.TrimSpace(string(input))) == "y"
+}
+
+func ExitOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %v", msg, err)
+	}
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	bucketutils "github.com/guardian/fsbp-tools/fsbp-fix/bucket-utils"
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 	vpcutils "github.com/guardian/fsbp-tools/fsbp-fix/vpc-utils"
@@ -28,6 +29,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	var cfg aws.Config
+	var err error
+	var regions []string
+
 	switch strings.ToLower(os.Args[1]) {
 
 	case "s3.8":
@@ -44,10 +49,6 @@ func main() {
 			log.Fatal("Please provide a named AWS profile")
 		}
 
-		if *region == "" {
-			log.Fatal("Please provide a region")
-		}
-
 		if *bucketCount < 1 || *bucketCount > 100 {
 			log.Fatal("Please provide a max between 1 and 100")
 		}
@@ -61,8 +62,20 @@ func main() {
 			exclusionsSlice = bucketutils.SplitAndTrim(*exclusions)
 		}
 
-		cfg, _ := common.Auth(ctx, *profile, *region)
-		bucketutils.FixS3_8(ctx, cfg, *bucketCount, exclusionsSlice, *execute)
+		if *region == "" {
+			regions, err = common.ListEnabledRegions(ctx, profile)
+			common.ExitOnError(err, "Failed to list enabled regions for profile "+*profile)
+		} else {
+			regions = []string{*region}
+		}
+
+		for i, r := range regions {
+			fmt.Printf("Region %d: %s\n", i+1, r)
+			cfg, err = common.Auth(ctx, *profile, r)
+			common.ExitOnError(err, "Failed to authenticate with AWS for region "+r)
+			bucketutils.FixS3_8(ctx, cfg, *bucketCount, exclusionsSlice, *execute)
+			fmt.Printf("----------------------------------------------------\n\n")
+		}
 
 	case "ec2.2":
 		execute := fixEc2_2.Bool("execute", false, "Execute the block operation")
@@ -76,11 +89,19 @@ func main() {
 		}
 
 		if *region == "" {
-			log.Fatal("Please provide a region")
+			regions, err = common.ListEnabledRegions(ctx, profile)
+			common.ExitOnError(err, "Failed to list enabled regions for profile "+*profile)
+		} else {
+			regions = []string{*region}
 		}
 
-		cfg, _ := common.Auth(ctx, *profile, *region)
-		vpcutils.FixEc2_2(ctx, cfg, *execute)
+		for i, r := range regions {
+			fmt.Printf("Region %d: %s\n", i+1, r)
+			cfg, err = common.Auth(ctx, *profile, r)
+			common.ExitOnError(err, "Failed to authenticate with AWS for region "+r)
+			vpcutils.FixEc2_2(ctx, cfg, *execute)
+			fmt.Printf("----------------------------------------------------\n\n")
+		}
 
 	default:
 		fmt.Println("expected 's3.8' or 'ec2.2' subcommands")
