@@ -12,29 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-// Generic paginator for AWS SDK v2.
-// This function takes a function that fetches items with pagination support.
-// The paginator will keep calling the fetch function until there are no more items to fetch (next token is nil).
-// Paginate returns a slice of items, after running out of nextTokens.
-type pageFetcherFunc[T any] func(nextToken *string) (items []T, next *string, err error)
-
-func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) {
-	var allItems []T
-	var nextToken *string
-	for {
-		items, next, err := fetch(nextToken)
-		if err != nil {
-			return nil, err
-		}
-		allItems = append(allItems, items...)
-		if next == nil {
-			break
-		}
-		nextToken = next
-	}
-	return allItems, nil
-}
-
 func validateCredentials(ctx context.Context, stsClient *sts.Client, profile string) (*sts.GetCallerIdentityOutput, error) {
 	resp, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
