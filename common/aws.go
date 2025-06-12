@@ -21,7 +21,11 @@ func validateCredentials(ctx context.Context, stsClient *sts.Client, profile str
 }
 
 func Auth(ctx context.Context, profile string, region string) (aws.Config, error) {
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(profile), config.WithDefaultRegion(region))
+	cfg, err := config.LoadDefaultConfig(
+		ctx,
+		config.WithSharedConfigProfile(profile),
+		config.WithDefaultRegion(region),
+	)
 	if err != nil {
 		fmt.Println("Error loading configuration")
 		return cfg, err

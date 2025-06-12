@@ -45,7 +45,7 @@ func getAllStackSummaries(ctx context.Context, cfnClient *cloudformation.Client)
 		allStackSummaries = append(allStackSummaries, page.StackSummaries...)
 	}
 
-	fmt.Println("Found " + fmt.Sprint(len(allStackSummaries)) + " stacks in account.")
+	fmt.Println("Found " + fmt.Sprint(len(allStackSummaries)) + " stacks.")
 	return allStackSummaries, nil
 }
 
@@ -103,18 +103,22 @@ func FindBucketsToBlock(ctx context.Context, securityHubClient *securityhub.Clie
 	failingBucketCount := len(failingBuckets)
 	excludedBuckets := append(listBucketsInStacks(ctx, cfnClient), exclusions...)
 
-	fmt.Println("\nBuckets to exclude:")
+	if len(excludedBuckets) > 0 {
+		fmt.Println("\nBuckets to exclude:")
+	}
 	bucketsToBlock := common.Complement(failingBuckets, excludedBuckets)
 
 	bucketsToBlockCount := len(bucketsToBlock)
 	bucketsToSkipCount := failingBucketCount - bucketsToBlockCount
 
-	fmt.Println("\nBlocking the following buckets:")
-	for idx, bucket := range bucketsToBlock {
-		fmt.Println(idx+1, bucket)
+	if len(bucketsToBlock) > 0 {
+		fmt.Println("\nBlocking the following buckets:")
+		for idx, bucket := range bucketsToBlock {
+			fmt.Println(idx+1, bucket)
+		}
+		fmt.Print("\n")
 	}
 
-	fmt.Print("\n")
 	fmt.Println(failingBucketCount, "failing buckets found.")
 	fmt.Println(bucketsToBlockCount, "to block, and", bucketsToSkipCount, "to skip.")
 	return bucketsToBlock, nil
