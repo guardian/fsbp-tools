@@ -4,14 +4,16 @@ import (
 	"context"
 	"log"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 )
 
-func FixS3_8(ctx context.Context, cfg aws.Config, bucketCount int, exclusions []string, execute bool) {
+func FixS3_8(ctx context.Context, profile string, region string, bucketCount int, exclusions []string, execute bool) {
+
+	cfg, err := common.Auth(ctx, profile, region)
+	common.ExitOnError(err, "Failed to authenticate with AWS for region "+region)
 
 	accountId, err := common.GetAccountId(ctx, cfg)
 	if err != nil {
