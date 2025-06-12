@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	bucketutils "github.com/guardian/fsbp-tools/fsbp-fix/bucket-utils"
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 	vpcutils "github.com/guardian/fsbp-tools/fsbp-fix/vpc-utils"
@@ -17,9 +16,9 @@ import (
 func main() {
 
 	ctx := context.Background()
-
+	var err error
+	var regions []string
 	fixS3_8 := flag.NewFlagSet("s3.8", flag.ExitOnError)
-
 	fixEc2_2 := flag.NewFlagSet("ec2.2", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
@@ -29,12 +28,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var cfg aws.Config
-	var err error
-	var regions []string
-
 	switch strings.ToLower(os.Args[1]) {
-
 	case "s3.8":
 
 		execute := fixS3_8.Bool("execute", false, "Execute the block operation")
@@ -71,9 +65,7 @@ func main() {
 
 		for i, r := range regions {
 			fmt.Printf("Region %d: %s\n", i+1, r)
-			cfg, err = common.Auth(ctx, *profile, r)
-			common.ExitOnError(err, "Failed to authenticate with AWS for region "+r)
-			bucketutils.FixS3_8(ctx, cfg, *bucketCount, exclusionsSlice, *execute)
+			bucketutils.FixS3_8(ctx, *profile, r, *bucketCount, exclusionsSlice, *execute)
 			fmt.Printf("----------------------------------------------------\n\n")
 		}
 
@@ -97,9 +89,7 @@ func main() {
 
 		for i, r := range regions {
 			fmt.Printf("Region %d: %s\n", i+1, r)
-			cfg, err = common.Auth(ctx, *profile, r)
-			common.ExitOnError(err, "Failed to authenticate with AWS for region "+r)
-			vpcutils.FixEc2_2(ctx, cfg, *execute)
+			vpcutils.FixEc2_2(ctx, *profile, r, *execute)
 			fmt.Printf("----------------------------------------------------\n\n")
 		}
 

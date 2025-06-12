@@ -64,7 +64,7 @@ func ListEnabledRegions(ctx context.Context, profile *string) ([]string, error) 
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Region count: %d\n", len(resp.Regions))
+	fmt.Printf("%d regions enabled.\n", len(resp.Regions))
 	enabledRegions := []string{}
 	for _, region := range resp.Regions {
 		if region.RegionName != nil {
