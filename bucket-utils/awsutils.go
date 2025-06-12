@@ -69,24 +69,15 @@ func FindBucketsInStack(summaries []cfnTypes.StackResourceSummary, stackName str
 
 func getAllStackResources(ctx context.Context, cfnClient *cloudformation.Client, stackName string) ([]cfnTypes.StackResourceSummary, error) {
 
-	allStackResources, err := common.Paginate(func(nextToken *string) ([]cfnTypes.StackResourceSummary, *string, error) {
-		input := &cloudformation.ListStackResourcesInput{
-			StackName: &stackName,
-			// Returns up to 1MB of data per call, then provides a NextToken.
-			// This limit is almost never reached.
-			NextToken: nextToken,
-		}
-		if nextToken != nil {
-			input.NextToken = nextToken
-		}
-		resp, err := cfnClient.ListStackResources(ctx, input)
+	allStackResources := []cfnTypes.StackResourceSummary{}
+	stackResourcePaginator := cloudformation.NewListStackResourcesPaginator(cfnClient, &cloudformation.ListStackResourcesInput{StackName: &stackName})
+
+	for stackResourcePaginator.HasMorePages() { // We fetch 1MB at a time, so more than one page is unlikely
+		page, err := stackResourcePaginator.NextPage(ctx)
 		if err != nil {
-			return nil, nil, err
+			return nil, fmt.Errorf("failed to get stack resources for stack %s: %w", stackName, err)
 		}
-		return resp.StackResourceSummaries, resp.NextToken, nil
-	})
-	if err != nil {
-		return nil, err
+		allStackResources = append(allStackResources, page.StackResourceSummaries...)
 	}
 
 	return allStackResources, nil
