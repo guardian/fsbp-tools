@@ -52,10 +52,8 @@ func GetAccountId(ctx context.Context, cfg aws.Config) (string, error) {
 	return *resp.Account, nil
 }
 
-func ListEnabledRegions(ctx context.Context, profile *string) ([]string, error) {
-	fmt.Printf("No region provided, running globally in all enabled regions\n")
-	cfg, err := Auth(ctx, *profile, "eu-west-1")
-	ExitOnError(err, "Failed to authenticate with AWS")
+func ListEnabledRegions(ctx context.Context, cfg aws.Config) ([]string, error) {
+	fmt.Println("No region provided, running globally in all enabled regions")
 	accountClient := account.NewFromConfig(cfg)
 	resp, err := accountClient.ListRegions(ctx, &account.ListRegionsInput{
 		RegionOptStatusContains: []acc.RegionOptStatus{acc.RegionOptStatusEnabled, acc.RegionOptStatusEnabledByDefault},
@@ -104,7 +102,7 @@ func findingsInput(controlId string, maxResults int32, accountId string, region 
 
 func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32, accountId string, region string) ([]shTypes.AwsSecurityFinding, error) {
 
-	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
+	fmt.Printf("Retrieving Security Hub control failures for %s, in %s\n", controlId, region)
 	allFindings := []shTypes.AwsSecurityFinding{}
 	input := findingsInput(controlId, maxResults, accountId, region)
 

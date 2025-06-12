@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
-	"text/tabwriter"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -26,10 +24,15 @@ type securityGroupRule struct {
 	Direction   string // ingress or egress
 }
 
-type SecurityGroupRuleDetails struct {
+type RuleDetails struct { //does this need to be exported?
 	SecurityGroup string
 	VpcDetails    vpcDetails
 	Rule          securityGroupRule
+}
+
+type SecurityGroupRuleDetails struct {
+	Region string
+	Groups []RuleDetails
 }
 
 func getSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, groupId string) ([]securityGroupRule, error) {
@@ -94,19 +97,22 @@ func getVpcDetails(ctx context.Context, ec2Client *ec2.Client, groupId string) (
 	return res[0], nil // A security group cannot be associated with multiple VPCs.
 }
 
-func getSecurityGroupRuleDetails(ctx context.Context, ec2Client *ec2.Client, groupId string) ([]SecurityGroupRuleDetails, error) {
+func getSecurityGroupRuleDetails(ctx context.Context, ec2Client *ec2.Client, groupId string, region string) (SecurityGroupRuleDetails, error) {
 	rules, err := getSecurityGroupRules(ctx, ec2Client, groupId)
 	if err != nil {
-		return nil, err
+		return SecurityGroupRuleDetails{}, err
 	}
 	vpcDetails, err := getVpcDetails(ctx, ec2Client, groupId)
 	if err != nil {
-		return nil, err
+		return SecurityGroupRuleDetails{}, err
 	}
 
-	res := []SecurityGroupRuleDetails{}
+	res := SecurityGroupRuleDetails{
+		Region: region,
+		Groups: []RuleDetails{},
+	}
 	for _, rule := range rules {
-		res = append(res, SecurityGroupRuleDetails{
+		res.Groups = append(res.Groups, RuleDetails{
 			SecurityGroup: groupId,
 			VpcDetails:    vpcDetails,
 			Rule:          rule,
@@ -141,11 +147,11 @@ func findUnusedSecurityGroups(ctx context.Context, ec2Client *ec2.Client, sgIds 
 	return common.Complement(sgIds, securityGroupsInNetworkInterfaces), nil
 }
 
-func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securityHubClient *securityhub.Client, accountId string, region string) ([]SecurityGroupRuleDetails, error) {
+func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securityHubClient *securityhub.Client, accountId string, region string) (SecurityGroupRuleDetails, error) {
 
 	findings, err := common.ReturnFindings(ctx, securityHubClient, "EC2.2", 100, accountId, region)
 	if err != nil {
-		return nil, err
+		return SecurityGroupRuleDetails{}, err
 	}
 
 	securityGroups := []string{}
@@ -159,40 +165,24 @@ func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, se
 
 	unusedSecurityGroups, err := findUnusedSecurityGroups(ctx, ec2Client, securityGroups)
 	if err != nil {
-		return nil, err
+		return SecurityGroupRuleDetails{}, err
 	}
-	securityGroupRuleDetails := []SecurityGroupRuleDetails{}
+	securityGroupRuleDetails := SecurityGroupRuleDetails{}
 
 	for _, sg := range unusedSecurityGroups {
-		rules, err := getSecurityGroupRuleDetails(ctx, ec2Client, sg)
+		rules, err := getSecurityGroupRuleDetails(ctx, ec2Client, sg, region)
 		if err != nil {
-			return nil, err
+			return SecurityGroupRuleDetails{}, err
 		}
-		securityGroupRuleDetails = append(securityGroupRuleDetails, rules...)
+		securityGroupRuleDetails.Groups = append(securityGroupRuleDetails.Groups, rules.Groups...)
 	}
 
-	if len(securityGroupRuleDetails) > 0 {
-
-		fmt.Println("Ingress/egress rules on unused default security groups:")
-
-		// Print out results as a table
-		w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
-		fmt.Fprintln(w, "Security Group\tVPC Name\tVPC ID\tRule Id\tFrom Port\tTo Port\tIP Protocol\tDirection")
-		for _, sg := range securityGroupRuleDetails {
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\n", sg.SecurityGroup, sg.VpcDetails.VpcName, sg.VpcDetails.VpcId, sg.Rule.GroupRuleId, sg.Rule.FromPort, sg.Rule.ToPort, sg.Rule.IpProtocol, sg.Rule.Direction)
-		}
-
-		err = w.Flush()
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
+	securityGroupRuleDetails.Region = region //Only set the region once we've collected all the rules
 	return securityGroupRuleDetails, nil
 }
 
-func deleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule SecurityGroupRuleDetails) error {
+func deleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule RuleDetails) error {
+
 	if rule.Rule.Direction == "egress" {
 		_, err := ec2Client.RevokeSecurityGroupEgress(ctx, &ec2.RevokeSecurityGroupEgressInput{
 			GroupId:              &rule.SecurityGroup,
@@ -215,13 +205,13 @@ func deleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule Se
 
 }
 
-func DeleteSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securityGroupRuleDetails []SecurityGroupRuleDetails) {
+func DeleteSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securityGroupRuleDetails SecurityGroupRuleDetails) {
 	var failures int = 0
 	log.Println("Starting to delete rules...")
-	for _, sgr := range securityGroupRuleDetails {
-		err := deleteSecurityGroupRule(ctx, ec2Client, sgr)
+	for _, group := range securityGroupRuleDetails.Groups {
+		err := deleteSecurityGroupRule(ctx, ec2Client, group)
 		if err != nil {
-			log.Printf("Error deleting rule: %v\n", sgr.Rule.GroupRuleId)
+			log.Printf("Error deleting rule: %v\n", group.Rule.GroupRuleId)
 			log.Printf("Error: %v\n", err)
 			failures++
 		}

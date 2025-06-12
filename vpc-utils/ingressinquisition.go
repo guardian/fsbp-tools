@@ -3,34 +3,27 @@ package vpcutils
 import (
 	"context"
 	"fmt"
-	"log"
+	"sync"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 )
 
-func FixEc2_2(ctx context.Context, profile string, region string, execute bool) {
-
-	cfg, err := common.Auth(ctx, profile, region)
-	common.ExitOnError(err, "Failed to authenticate with AWS")
-
-	ec2Client := ec2.NewFromConfig(cfg)
+func FindEc2_2(ch chan<- SecurityGroupRuleDetails, wg *sync.WaitGroup, ctx context.Context, cfg aws.Config, ec2Client *ec2.Client, accountId string) {
+	defer wg.Done()
 	securityHubClient := securityhub.NewFromConfig(cfg)
+	res, _ := FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient, accountId, cfg.Region)
+	ch <- res
+}
 
-	accountId, err := common.GetAccountId(ctx, cfg)
-	if err != nil {
-		log.Fatalf("Error getting account ID: %v", err)
-	}
-
-	securityGroupRuleDetails, err := FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient, accountId, cfg.Region)
-
-	if err != nil {
-		log.Fatalf("Error finding unused security group rules: %v", err)
-	} else if len(securityGroupRuleDetails) == 0 {
-		fmt.Println("No unused security groups found")
-	} else if execute && common.UserConfirmation() {
-		fmt.Println("\n ")
-		DeleteSecurityGroupRules(ctx, ec2Client, securityGroupRuleDetails)
+func FixEc2_2(ctx context.Context, unusedSecurityGroups SecurityGroupRuleDetails, execute bool, profile string) {
+	if execute && common.UserConfirmation() {
+		cfg, _ := common.Auth(ctx, profile, unusedSecurityGroups.Region) //TODO handle error
+		ec2Client := ec2.NewFromConfig(cfg)
+		DeleteSecurityGroupRules(ctx, ec2Client, unusedSecurityGroups)
+	} else {
+		fmt.Println("Skipping deletion.")
 	}
 }
