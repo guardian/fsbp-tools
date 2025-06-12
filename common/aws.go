@@ -12,29 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-// Generic paginator for AWS SDK v2.
-// This function takes a function that fetches items with pagination support.
-// The paginator will keep calling the fetch function until there are no more items to fetch (next token is nil).
-// Paginate returns a slice of items, after running out of nextTokens.
-type pageFetcherFunc[T any] func(nextToken *string) (items []T, next *string, err error)
-
-func Paginate[T any](fetch pageFetcherFunc[T]) ([]T, error) {
-	var allItems []T
-	var nextToken *string
-	for {
-		items, next, err := fetch(nextToken)
-		if err != nil {
-			return nil, err
-		}
-		allItems = append(allItems, items...)
-		if next == nil {
-			break
-		}
-		nextToken = next
-	}
-	return allItems, nil
-}
-
 func validateCredentials(ctx context.Context, stsClient *sts.Client, profile string) (*sts.GetCallerIdentityOutput, error) {
 	resp, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
@@ -77,10 +54,9 @@ func GetAccountId(ctx context.Context, profile string, region string) (string, e
 	return *resp.Account, nil
 }
 
-func findingsInput(controlId string, maxResults int32, nextToken *string, accountId string, region string) *securityhub.GetFindingsInput {
+func findingsInput(controlId string, maxResults int32, accountId string, region string) *securityhub.GetFindingsInput {
 	return &securityhub.GetFindingsInput{
 		MaxResults: &maxResults,
-		NextToken:  nextToken,
 		Filters: &shTypes.AwsSecurityFindingFilters{
 			ComplianceSecurityControlId: []shTypes.StringFilter{{
 				Value:      &controlId,
@@ -109,18 +85,17 @@ func findingsInput(controlId string, maxResults int32, nextToken *string, accoun
 func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32, accountId string, region string) ([]shTypes.AwsSecurityFinding, error) {
 
 	fmt.Printf("Retrieving Security Hub control failures for %s\n", controlId)
+	allFindings := []shTypes.AwsSecurityFinding{}
+	input := findingsInput(controlId, maxResults, accountId, region)
 
-	allFindings, err := Paginate(func(nextToken *string) ([]shTypes.AwsSecurityFinding, *string, error) {
-		input := findingsInput(controlId, maxResults, nextToken, accountId, region)
-		resp, err := securityHubClient.GetFindings(ctx, input)
+	paginator := securityhub.NewGetFindingsPaginator(securityHubClient, input)
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
 		if err != nil {
-			return nil, nil, err
+			return nil, fmt.Errorf("failed to get findings: %w", err)
 		}
-
-		return resp.Findings, resp.NextToken, nil
-	})
-	if err != nil {
-		return nil, err
+		allFindings = append(allFindings, page.Findings...)
 	}
+
 	return allFindings, nil
 }

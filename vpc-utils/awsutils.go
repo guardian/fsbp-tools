@@ -117,24 +117,19 @@ func getSecurityGroupRuleDetails(ctx context.Context, ec2Client *ec2.Client, gro
 
 func findUnusedSecurityGroups(ctx context.Context, ec2Client *ec2.Client, sgIds []string) ([]string, error) {
 
+	allNetworkInterfaces := []types.NetworkInterface{}
 	securityGroupsInNetworkInterfaces := []string{}
-	maxInterfaceResults := int32(100)
+	maxInterfaceResults := int32(1000) // Unlikely we will ever have more than 1000 network interfaces in one region
 
-	allNetworkInterfaces, err := common.Paginate(func(nextToken *string) ([]types.NetworkInterface, *string, error) {
-		input := &ec2.DescribeNetworkInterfacesInput{
-			MaxResults: &maxInterfaceResults,
-		}
-		if nextToken != nil {
-			input.NextToken = nextToken
-		}
-		resp, err := ec2Client.DescribeNetworkInterfaces(ctx, input)
-		if err != nil {
-			return nil, nil, err
-		}
-		return resp.NetworkInterfaces, resp.NextToken, nil
+	paginator := ec2.NewDescribeNetworkInterfacesPaginator(ec2Client, &ec2.DescribeNetworkInterfacesInput{
+		MaxResults: &maxInterfaceResults,
 	})
-	if err != nil {
-		return nil, err
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to describe network interfaces: %w", err)
+		}
+		allNetworkInterfaces = append(allNetworkInterfaces, page.NetworkInterfaces...)
 	}
 
 	for _, networkInterface := range allNetworkInterfaces {
