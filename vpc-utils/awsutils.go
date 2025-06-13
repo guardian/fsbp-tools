@@ -3,7 +3,6 @@ package vpcutils
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -207,14 +206,13 @@ func deleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule Ru
 
 func DeleteSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securityGroupRuleDetails SecurityGroupRuleDetails, failures *[]string) {
 
-	log.Println("Starting to delete rules...")
+	fmt.Println("Deleting...")
 	for _, group := range securityGroupRuleDetails.Groups {
 		err := deleteSecurityGroupRule(ctx, ec2Client, group)
 		if err != nil {
-			fmt.Printf("Error deleting rule: %v\n", group.Rule.GroupRuleId)
-			fmt.Printf("Error: %v\n", err)
+			fmt.Printf("Error deleting %v\n", group.Rule.GroupRuleId)
+			fmt.Println(err)
 			*failures = append(*failures, group.Rule.GroupRuleId)
 		}
 	}
-	log.Printf("Finished deleting rules.")
 }

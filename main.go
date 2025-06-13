@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 
 	bucketutils "github.com/guardian/fsbp-tools/fsbp-fix/bucket-utils"
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
@@ -85,7 +84,6 @@ func main() {
 		wg := sync.WaitGroup{}
 
 		vpcutils.FindUnusedSgRules(ctx, accountDetails, ch, &wg, *profile)
-		time.Sleep(100 * time.Millisecond) // Give some time for the goroutines to stop
 		vpcutils.FixEc2_2(ctx, ch, execute, profile)
 
 	default:
