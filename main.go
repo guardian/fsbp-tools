@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	bucketutils "github.com/guardian/fsbp-tools/fsbp-fix/bucket-utils"
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
@@ -16,8 +17,6 @@ import (
 func main() {
 
 	ctx := context.Background()
-	var err error
-	var regions []string
 	fixS3_8 := flag.NewFlagSet("s3.8", flag.ExitOnError)
 	fixEc2_2 := flag.NewFlagSet("ec2.2", flag.ExitOnError)
 
@@ -56,14 +55,12 @@ func main() {
 			exclusionsSlice = bucketutils.SplitAndTrim(*exclusions)
 		}
 
-		if *region == "" {
-			regions, err = common.ListEnabledRegions(ctx, profile)
-			common.ExitOnError(err, "Failed to list enabled regions for profile "+*profile)
-		} else {
-			regions = []string{*region}
+		accountDetails, err := common.GetAccountDetails(ctx, *profile, *region)
+		if err != nil {
+			log.Fatalf("Error getting account details: %v", err)
 		}
 
-		for i, r := range regions {
+		for i, r := range accountDetails.Regions {
 			fmt.Printf("Region %d: %s\n", i+1, r)
 			bucketutils.FixS3_8(ctx, *profile, r, *bucketCount, exclusionsSlice, *execute)
 			fmt.Printf("----------------------------------------------------\n\n")
@@ -80,22 +77,21 @@ func main() {
 			log.Fatal("Please provide a named AWS profile")
 		}
 
-		if *region == "" {
-			regions, err = common.ListEnabledRegions(ctx, profile)
-			common.ExitOnError(err, "Failed to list enabled regions for profile "+*profile)
-		} else {
-			regions = []string{*region}
-		}
+		accountDetails, err := common.GetAccountDetails(ctx, *profile, *region)
+		common.ExitOnError(err, "Failed to get account details")
 
-		for i, r := range regions {
-			fmt.Printf("Region %d: %s\n", i+1, r)
-			vpcutils.FixEc2_2(ctx, *profile, r, *execute)
-			fmt.Printf("----------------------------------------------------\n\n")
-		}
+		ch := make(chan vpcutils.SecurityGroupRuleDetails)
+		wg := sync.WaitGroup{}
+
+		vpcutils.FindUnusedSgRules(ctx, accountDetails, ch, &wg, *profile)
+		go func() {
+			wg.Wait()
+			close(ch)
+		}()
+		vpcutils.FixEc2_2(ctx, ch, execute, profile)
 
 	default:
 		fmt.Println("expected 's3.8' or 'ec2.2' subcommands")
 		os.Exit(1)
 	}
-
 }

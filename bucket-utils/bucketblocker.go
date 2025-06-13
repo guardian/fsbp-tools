@@ -15,7 +15,7 @@ func FixS3_8(ctx context.Context, profile string, region string, bucketCount int
 	cfg, err := common.Auth(ctx, profile, region)
 	common.ExitOnError(err, "Failed to authenticate with AWS for region "+region)
 
-	accountId, err := common.GetAccountId(ctx, cfg)
+	accountDetails, err := common.GetAccountDetails(ctx, profile, region)
 	if err != nil {
 		log.Fatalf("Error getting account ID: %v", err)
 	}
@@ -23,7 +23,7 @@ func FixS3_8(ctx context.Context, profile string, region string, bucketCount int
 	securityHubClient := securityhub.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
 	cfnClient := cloudformation.NewFromConfig(cfg)
-	bucketsToBlock, err := FindBucketsToBlock(ctx, securityHubClient, s3Client, cfnClient, int32(bucketCount), exclusions, accountId, cfg.Region)
+	bucketsToBlock, err := FindBucketsToBlock(ctx, securityHubClient, s3Client, cfnClient, int32(bucketCount), exclusions, accountDetails.AccountId, cfg.Region)
 	if err != nil {
 		log.Fatalf("Error working out which buckets need blocking: %v", err)
 	}
