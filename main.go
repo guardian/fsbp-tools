@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	bucketutils "github.com/guardian/fsbp-tools/fsbp-fix/bucket-utils"
+	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 	vpcutils "github.com/guardian/fsbp-tools/fsbp-fix/vpc-utils"
 )
 
@@ -59,7 +60,9 @@ func main() {
 			fmt.Printf("Parsing exclusions")
 			exclusionsSlice = bucketutils.SplitAndTrim(*exclusions)
 		}
-		bucketutils.FixS3_8(ctx, *profile, *region, *bucketCount, exclusionsSlice, *execute)
+
+		cfg, _ := common.Auth(ctx, *profile, *region)
+		bucketutils.FixS3_8(ctx, cfg, *bucketCount, exclusionsSlice, *execute)
 
 	case "ec2.2":
 		execute := fixEc2_2.Bool("execute", false, "Execute the block operation")
@@ -76,7 +79,8 @@ func main() {
 			log.Fatal("Please provide a region")
 		}
 
-		vpcutils.FixEc2_2(ctx, *profile, *region, *execute)
+		cfg, _ := common.Auth(ctx, *profile, *region)
+		vpcutils.FixEc2_2(ctx, cfg, *execute)
 
 	default:
 		fmt.Println("expected 's3.8' or 'ec2.2' subcommands")

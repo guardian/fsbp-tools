@@ -20,7 +20,7 @@ func validateCredentials(ctx context.Context, stsClient *sts.Client, profile str
 	return resp, nil
 }
 
-func LoadDefaultConfig(ctx context.Context, profile string, region string) (aws.Config, error) {
+func Auth(ctx context.Context, profile string, region string) (aws.Config, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(profile), config.WithDefaultRegion(region))
 	if err != nil {
 		fmt.Println("Error loading configuration")
@@ -36,15 +36,7 @@ func LoadDefaultConfig(ctx context.Context, profile string, region string) (aws.
 	return cfg, nil
 }
 
-func GetAccountId(ctx context.Context, profile string, region string) (string, error) {
-	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithSharedConfigProfile(profile),
-		config.WithRegion(region),
-	)
-	if err != nil {
-		return "", fmt.Errorf("error loading config: %w", err)
-	}
-
+func GetAccountId(ctx context.Context, cfg aws.Config) (string, error) {
 	stsClient := sts.NewFromConfig(cfg)
 	resp, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
