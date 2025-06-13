@@ -84,6 +84,10 @@ func main() {
 		wg := sync.WaitGroup{}
 
 		vpcutils.FindUnusedSgRules(ctx, accountDetails, ch, &wg, *profile)
+		go func() {
+			wg.Wait()
+			close(ch)
+		}()
 		vpcutils.FixEc2_2(ctx, ch, execute, profile)
 
 	default:

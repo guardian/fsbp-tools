@@ -13,8 +13,7 @@ import (
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 )
 
-func findEc2_2(ch chan<- SecurityGroupRuleDetails, wg *sync.WaitGroup, ctx context.Context, cfg aws.Config, ec2Client *ec2.Client, accountId string) {
-	defer wg.Done()
+func findEc2_2(ch chan<- SecurityGroupRuleDetails, ctx context.Context, cfg aws.Config, ec2Client *ec2.Client, accountId string) {
 	securityHubClient := securityhub.NewFromConfig(cfg)
 	res, err := FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient, accountId, cfg.Region)
 	common.ExitOnError(err, "Failed to find unused security group rules in region "+cfg.Region)
@@ -44,18 +43,21 @@ func deleteRulesForRegion(ctx context.Context, unusedSecurityGroups SecurityGrou
 }
 
 func FindUnusedSgRules(ctx context.Context, accountDetails common.AccountDetails, ch chan<- SecurityGroupRuleDetails, wg *sync.WaitGroup, profile string) {
+	fmt.Println("Finding unused security group rules. This will take several seconds.")
 	for _, r := range accountDetails.Regions {
-		wg.Add(1)
 		cfg, err := common.Auth(ctx, profile, r)
-		common.ExitOnError(err, "Failed to authenticate with AWS for region "+r)
+		if err != nil {
+			fmt.Printf("Failed to authenticate with AWS for region %s: %v\n", r, err)
+			continue
+		}
 		ec2Client := ec2.NewFromConfig(cfg)
-		go findEc2_2(ch, wg, ctx, cfg, ec2Client, accountDetails.AccountId)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			findEc2_2(ch, ctx, cfg, ec2Client, accountDetails.AccountId)
+		}()
 	}
 
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
 }
 
 func FixEc2_2(ctx context.Context, ch <-chan SecurityGroupRuleDetails, execute *bool, profile *string) {
