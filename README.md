@@ -47,9 +47,12 @@ There are a few extra features, controlled by flags, enumerated below.
 
 <details>
     <summary>CLI options</summary>
-fsbp-fix takes a subcommand and up to 3 flags:
+s3.8 takes the following flags:
 
-- **region**: _Required._ The region you want to search in.
+- **profile**: _Required._ The profile to use when connecting to AWS. 
+
+- **region**: _Optional._ The region you want to search in. If not
+specified, it will run in all enabled regions.
 
 - **profile**: _Optional._ The profile to use when connecting to AWS. If not
 specified, it will run in all enabled regions.
@@ -111,7 +114,7 @@ flowchart TB
 
 <details>
     <summary>CLI options</summary>
-ingress-inquisition takes the following flags:
+ec2.2 takes the following flags:
 
 - **region**: _Required._ The region you want to search in.
 
