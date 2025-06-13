@@ -54,9 +54,6 @@ s3.8 takes the following flags:
 - **region**: _Optional._ The region you want to search in. If not
 specified, it will run in all enabled regions.
 
-- **profile**: _Optional._ The profile to use when connecting to AWS. If not
-specified, it will run in all enabled regions.
-
 - **execute**: _Optional._ Takes no value. If present, it will ask the user to confirm, then block the buckets. If not, it will only print
   the buckets that would have been blocked.
 
@@ -116,9 +113,9 @@ flowchart TB
     <summary>CLI options</summary>
 ec2.2 takes the following flags:
 
-- **region**: _Required._ The region you want to search in.
+- **profile**: _Required._ The profile to use when connecting to AWS. 
 
-- **profile**: _Optional._ The profile to use when connecting to AWS. If not
+- **region**: _Optional._ The region you want to search in. If not
 specified, it will run in all enabled regions.
 
 - **execute**: _Optional._ Takes no value. If present, it will ask the user to confirm, then delete the rules. Otherwise, it will just list the rules that would have been deleted.
