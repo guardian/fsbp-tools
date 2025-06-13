@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
 )
 
-func FixEc2_2(ctx context.Context, cfg aws.Config, execute bool) {
+func FixEc2_2(ctx context.Context, profile string, region string, execute bool) {
+
+	cfg, err := common.Auth(ctx, profile, region)
+	common.ExitOnError(err, "Failed to authenticate with AWS")
 
 	ec2Client := ec2.NewFromConfig(cfg)
 	securityHubClient := securityhub.NewFromConfig(cfg)

@@ -47,11 +47,12 @@ There are a few extra features, controlled by flags, enumerated below.
 
 <details>
     <summary>CLI options</summary>
-fsbp-fix takes a subcommand and up to 3 flags:
+s3.8 takes the following flags:
 
-- **profile**: _Required._ The profile to use when connecting to AWS.
+- **profile**: _Required._ The profile to use when connecting to AWS. 
 
-- **region**: _Required._ The region you want to search in.
+- **region**: _Optional._ The region you want to search in. If not
+specified, it will run in all enabled regions.
 
 - **execute**: _Optional._ Takes no value. If present, it will ask the user to confirm, then block the buckets. If not, it will only print
   the buckets that would have been blocked.
@@ -110,11 +111,12 @@ flowchart TB
 
 <details>
     <summary>CLI options</summary>
-ingress-inquisition takes the following flags:
-
-- **profile**: _Required._ The profile to use when connecting to AWS.
+ec2.2 takes the following flags:
 
 - **region**: _Required._ The region you want to search in.
+
+- **profile**: _Optional._ The profile to use when connecting to AWS. If not
+specified, it will run in all enabled regions.
 
 - **execute**: _Optional._ Takes no value. If present, it will ask the user to confirm, then delete the rules. Otherwise, it will just list the rules that would have been deleted.
 

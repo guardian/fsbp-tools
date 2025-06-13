@@ -16,9 +16,9 @@ import (
 func main() {
 
 	ctx := context.Background()
-
+	var err error
+	var regions []string
 	fixS3_8 := flag.NewFlagSet("s3.8", flag.ExitOnError)
-
 	fixEc2_2 := flag.NewFlagSet("ec2.2", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
@@ -29,7 +29,6 @@ func main() {
 	}
 
 	switch strings.ToLower(os.Args[1]) {
-
 	case "s3.8":
 
 		execute := fixS3_8.Bool("execute", false, "Execute the block operation")
@@ -42,10 +41,6 @@ func main() {
 
 		if *profile == "" {
 			log.Fatal("Please provide a named AWS profile")
-		}
-
-		if *region == "" {
-			log.Fatal("Please provide a region")
 		}
 
 		if *bucketCount < 1 || *bucketCount > 100 {
@@ -61,8 +56,18 @@ func main() {
 			exclusionsSlice = bucketutils.SplitAndTrim(*exclusions)
 		}
 
-		cfg, _ := common.Auth(ctx, *profile, *region)
-		bucketutils.FixS3_8(ctx, cfg, *bucketCount, exclusionsSlice, *execute)
+		if *region == "" {
+			regions, err = common.ListEnabledRegions(ctx, profile)
+			common.ExitOnError(err, "Failed to list enabled regions for profile "+*profile)
+		} else {
+			regions = []string{*region}
+		}
+
+		for i, r := range regions {
+			fmt.Printf("Region %d: %s\n", i+1, r)
+			bucketutils.FixS3_8(ctx, *profile, r, *bucketCount, exclusionsSlice, *execute)
+			fmt.Printf("----------------------------------------------------\n\n")
+		}
 
 	case "ec2.2":
 		execute := fixEc2_2.Bool("execute", false, "Execute the block operation")
@@ -76,11 +81,17 @@ func main() {
 		}
 
 		if *region == "" {
-			log.Fatal("Please provide a region")
+			regions, err = common.ListEnabledRegions(ctx, profile)
+			common.ExitOnError(err, "Failed to list enabled regions for profile "+*profile)
+		} else {
+			regions = []string{*region}
 		}
 
-		cfg, _ := common.Auth(ctx, *profile, *region)
-		vpcutils.FixEc2_2(ctx, cfg, *execute)
+		for i, r := range regions {
+			fmt.Printf("Region %d: %s\n", i+1, r)
+			vpcutils.FixEc2_2(ctx, *profile, r, *execute)
+			fmt.Printf("----------------------------------------------------\n\n")
+		}
 
 	default:
 		fmt.Println("expected 's3.8' or 'ec2.2' subcommands")
