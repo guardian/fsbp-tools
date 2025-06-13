@@ -27,7 +27,15 @@ func findEc2_2(ch chan<- SecurityGroupRuleDetails, wg *sync.WaitGroup, ctx conte
 
 func deleteRulesForRegion(ctx context.Context, unusedSecurityGroups SecurityGroupRuleDetails, execute bool, profile string, failures *[]string) {
 	if execute && common.UserConfirmation() {
-		cfg, _ := common.Auth(ctx, profile, unusedSecurityGroups.Region) //TODO handle error
+		cfg, err := common.Auth(ctx, profile, unusedSecurityGroups.Region)
+		if err != nil {
+			fmt.Printf("Failed to authenticate with AWS for region %s: %v\n", unusedSecurityGroups.Region, err)
+			for _, sg := range unusedSecurityGroups.Groups {
+				*failures = append(*failures, sg.Rule.GroupRuleId)
+			}
+			return
+		}
+
 		ec2Client := ec2.NewFromConfig(cfg)
 		DeleteSecurityGroupRules(ctx, ec2Client, unusedSecurityGroups, failures)
 	} else {
