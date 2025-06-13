@@ -79,7 +79,7 @@ func listEnabledRegions(ctx context.Context, cfg aws.Config) ([]string, error) {
 }
 
 func GetAccountDetails(ctx context.Context, profile string, region string) (AccountDetails, error) {
-	cfg, err := Auth(ctx, profile, "eu-west-1") // used to get accountId and enabled regions
+	cfg, err := Auth(ctx, profile, "eu-west-1")
 	if err != nil {
 		return AccountDetails{}, fmt.Errorf("failed to authenticate with AWS: %w", err)
 	}

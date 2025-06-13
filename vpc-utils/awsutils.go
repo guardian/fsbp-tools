@@ -23,7 +23,7 @@ type securityGroupRule struct {
 	Direction   string // ingress or egress
 }
 
-type RuleDetails struct { //does this need to be exported?
+type ruleDetails struct {
 	SecurityGroup string
 	VpcDetails    vpcDetails
 	Rule          securityGroupRule
@@ -31,7 +31,7 @@ type RuleDetails struct { //does this need to be exported?
 
 type SecurityGroupRuleDetails struct {
 	Region string
-	Groups []RuleDetails
+	Groups []ruleDetails
 }
 
 func getSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, groupId string) ([]securityGroupRule, error) {
@@ -108,10 +108,10 @@ func getSecurityGroupRuleDetails(ctx context.Context, ec2Client *ec2.Client, gro
 
 	res := SecurityGroupRuleDetails{
 		Region: region,
-		Groups: []RuleDetails{},
+		Groups: []ruleDetails{},
 	}
 	for _, rule := range rules {
-		res.Groups = append(res.Groups, RuleDetails{
+		res.Groups = append(res.Groups, ruleDetails{
 			SecurityGroup: groupId,
 			VpcDetails:    vpcDetails,
 			Rule:          rule,
@@ -179,7 +179,7 @@ func FindUnusedSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, se
 	return securityGroupRuleDetails, nil
 }
 
-func deleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule RuleDetails) error {
+func deleteSecurityGroupRule(ctx context.Context, ec2Client *ec2.Client, rule ruleDetails) error {
 
 	if rule.Rule.Direction == "egress" {
 		_, err := ec2Client.RevokeSecurityGroupEgress(ctx, &ec2.RevokeSecurityGroupEgressInput{
