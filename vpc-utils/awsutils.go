@@ -211,8 +211,8 @@ func DeleteSecurityGroupRules(ctx context.Context, ec2Client *ec2.Client, securi
 	for _, group := range securityGroupRuleDetails.Groups {
 		err := deleteSecurityGroupRule(ctx, ec2Client, group)
 		if err != nil {
-			log.Printf("Error deleting rule: %v\n", group.Rule.GroupRuleId)
-			log.Printf("Error: %v\n", err)
+			fmt.Printf("Error deleting rule: %v\n", group.Rule.GroupRuleId)
+			fmt.Printf("Error: %v\n", err)
 			failures++
 		}
 	}

@@ -16,8 +16,13 @@ import (
 func findEc2_2(ch chan<- SecurityGroupRuleDetails, wg *sync.WaitGroup, ctx context.Context, cfg aws.Config, ec2Client *ec2.Client, accountId string) {
 	defer wg.Done()
 	securityHubClient := securityhub.NewFromConfig(cfg)
-	res, _ := FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient, accountId, cfg.Region)
-	ch <- res
+	res, err := FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient, accountId, cfg.Region)
+	common.ExitOnError(err, "Failed to find unused security group rules in region "+cfg.Region)
+	if len(res.Groups) > 0 {
+		ch <- res
+	} else {
+		fmt.Printf("No unused security group rules found in %s\n", cfg.Region)
+	}
 }
 
 func deleteRulesForRegion(ctx context.Context, unusedSecurityGroups SecurityGroupRuleDetails, execute bool, profile string) {
@@ -57,7 +62,7 @@ func FixEc2_2(ctx context.Context, ch <-chan SecurityGroupRuleDetails, execute *
 			}
 
 			err := w.Flush()
-			common.ExitOnError(err, "Failed to flush tabwriter")
+			common.ExitOnError(err, "")
 
 			deleteRulesForRegion(ctx, result, *execute, *profile) // Set execute to false for dry run
 			fmt.Println("----------------------------------------------------")
