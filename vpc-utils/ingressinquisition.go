@@ -43,7 +43,7 @@ func deleteRulesForRegion(ctx context.Context, unusedSecurityGroups SecurityGrou
 }
 
 func FindUnusedSgRules(ctx context.Context, accountDetails common.AccountDetails, ch chan<- SecurityGroupRuleDetails, wg *sync.WaitGroup, profile string) {
-	fmt.Println("Finding unused security group rules. This will take several seconds.")
+	fmt.Println("Finding unused security group rules. Please be patient.")
 	for _, r := range accountDetails.Regions {
 		cfg, err := common.Auth(ctx, profile, r)
 		if err != nil {

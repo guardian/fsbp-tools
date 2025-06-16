@@ -134,8 +134,6 @@ func findingsInput(controlId string, maxResults int32, accountId string, region 
 }
 
 func ReturnFindings(ctx context.Context, securityHubClient *securityhub.Client, controlId string, maxResults int32, accountId string, region string) ([]shTypes.AwsSecurityFinding, error) {
-
-	fmt.Printf("Retrieving Security Hub control failures for %s, in %s\n", controlId, region)
 	allFindings := []shTypes.AwsSecurityFinding{}
 	input := findingsInput(controlId, maxResults, accountId, region)
 
