@@ -16,7 +16,7 @@ import (
 
 func findFailingBuckets(ctx context.Context, securityHubClient *securityhub.Client, bucketCount int32, accountId string, region string) ([]string, error) {
 	controlId := "S3.8"
-
+	fmt.Printf("Retrieving Security Hub control failures for %s, in %s\n", controlId, region)
 	findings, err := common.ReturnFindings(ctx, securityHubClient, controlId, bucketCount, accountId, region)
 	if err != nil {
 		return nil, err
