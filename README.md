@@ -89,7 +89,7 @@ fsbp-fix ec2.2 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 
 <details>
   <summary>Details</summary>
-AWS Security Hub Control [EC2.2](https://docs.aws.amazon.com/securityhub/latest/userguide/ec2-controls.html#ec2-2) states that default security groups in VPCs should not allow any inbound or outbound traffic. VPCs set up recently are compliant by default, but older VPCs are not.
+AWS Security Hub Control [EC2.2](https://docs.aws.amazon.com/securityhub/latest/userguide/ec2-controls.html#ec2-2) states that default security groups in VPCs should not allow any inbound or outbound traffic.
 
 The tool will search for relevant security groups that are not compliant with this control, and check to see if the security group is being used. If the group is not in use, it will remove the offending ingress/egress rules.
 
