@@ -25,3 +25,9 @@ func ExitOnError(err error, msg string) {
 		log.Fatalf("%s: %v", msg, err)
 	}
 }
+
+func WarnOnError(err error, msg string) {
+	if err != nil {
+		log.Printf("Warning: %s: %v", msg, err)
+	}
+}

@@ -16,7 +16,7 @@ import (
 func findEc2_2(ch chan<- SecurityGroupRuleDetails, ctx context.Context, cfg aws.Config, ec2Client *ec2.Client, accountId string) {
 	securityHubClient := securityhub.NewFromConfig(cfg)
 	res, err := FindUnusedSecurityGroupRules(ctx, ec2Client, securityHubClient, accountId, cfg.Region)
-	common.ExitOnError(err, "Failed to find unused security group rules in region "+cfg.Region)
+	common.WarnOnError(err, "Failed to find unused security group rules in region "+cfg.Region)
 	if len(res.Groups) > 0 {
 		ch <- res
 	} else {
