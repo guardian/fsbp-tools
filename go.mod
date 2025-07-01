@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
-	github.com/aws/aws-sdk-go-v2/service/account v1.24.1
+	github.com/aws/aws-sdk-go-v2/service/account v1.24.2
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.59.2
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.224.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.82.0
