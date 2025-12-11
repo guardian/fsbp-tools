@@ -140,6 +140,91 @@ go run main.go ec2.2 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
 #### How do we know if a security group is being used?
 
 Security groups are associated with resources such as EC2 instances, databases, etc via an Elastic Network Interface (ENI). Ingress inquisition queries the AWS API to check all ENIs in the region, and if a security group is associated with an ENI, it is considered in use, and the rules will not be deleted.
+
+</details>
+
+## SSM.7 - SSM documents should have the block public sharing setting enabled
+
+### Usage
+
+The minimal flags required to resolve SSM.7 are as follows. This will execute in dry run mode.
+
+```bash
+fsbp-fix ssm.7 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
+```
+
+<details>
+  <summary>Details</summary>
+AWS Security Hub Control [SSM.7](https://docs.aws.amazon.com/securityhub/latest/userguide/ssm-controls.html#ssm-7) requires that SSM documents are not publicly shared.
+
+The tool scans all customer-owned SSM documents in each region to identify any that are publicly shared. If public documents are found, it can remove the public sharing permissions from individual documents and disable public sharing at the region level.
+
+```mermaid
+flowchart TB
+    scan[Scan all customer-owned SSM documents]
+    public[Are any documents publicly shared?]
+    confirm[User confirms fix for this region?]
+    fix[Remove public access from documents]
+    disable[Disable region-level public sharing]
+    skip[Skip region and continue]
+    done[Done]
+
+    scan --> public
+    public --> No --> done
+    public --> Yes --> confirm
+    confirm --> Yes --> fix --> disable --> done
+    confirm --> No --> skip --> done
+```
+
+**Important:** When public documents are found in execute mode, you will be prompted to fix each region individually. This allows you to skip regions that need investigation and continue processing other regions.
+
+</details>
+
+<details>
+    <summary>CLI options</summary>
+ssm.7 takes the following flags:
+
+- **profile**: _Required._ The profile to use when connecting to AWS. 
+
+- **region**: _Optional._ The region you want to check. If not specified, it will run in all enabled regions.
+
+- **execute**: _Optional._ Takes no value. If present, it will prompt for confirmation per region, then remove public access from documents and disable region-level public sharing. Otherwise, it will display a summary of public documents found across all regions.
+
+You will also need credentials for the relevant AWS account from Janus.
+</details>
+
+<details>
+    <summary>Local development</summary>
+While developing locally, you can test the application using the following command, without needing to build the binary:
+
+```bash
+go run main.go ssm.7 -profile <PROFILE> -region <REGION> [OPTIONAL_FLAGS]
+```
+
+</details>
+
+<details>
+    <summary>FAQ</summary>
+### FAQ
+
+#### What does this control actually fix?
+
+SSM.7 ensures that SSM documents are not publicly accessible. The tool:
+1. Scans all customer-owned documents (Owner: Self) for public sharing permissions
+2. Removes the "all" account from document share permissions
+3. Disables public sharing at the region level via the service setting `/ssm/documents/console/public-sharing-permission`
+
+#### Why does it ask for confirmation per region?
+
+When running with `-execute`, if public documents are found in a region, you'll be prompted to confirm fixes for that region. This allows you to:
+- Investigate why documents are public before fixing
+- Skip specific regions while continuing to process others
+- Maintain granular control over multi-region operations
+
+#### What if I skip a region?
+
+If you choose not to fix a region when prompted, that region will be skipped and the tool will continue processing remaining regions. A summary at the end will show all public documents found across all regions.
+
 </details>
 
 ## Local development
