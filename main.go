@@ -11,6 +11,7 @@ import (
 
 	bucketutils "github.com/guardian/fsbp-tools/fsbp-fix/bucket-utils"
 	"github.com/guardian/fsbp-tools/fsbp-fix/common"
+	ssmutils "github.com/guardian/fsbp-tools/fsbp-fix/ssm-utils"
 	vpcutils "github.com/guardian/fsbp-tools/fsbp-fix/vpc-utils"
 )
 
@@ -19,11 +20,12 @@ func main() {
 	ctx := context.Background()
 	fixS3_8 := flag.NewFlagSet("s3.8", flag.ExitOnError)
 	fixEc2_2 := flag.NewFlagSet("ec2.2", flag.ExitOnError)
+	fixSSM_7 := flag.NewFlagSet("ssm.7", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
 		fmt.Println(len(os.Args))
 		fmt.Println(os.Args)
-		fmt.Println("expected 's3.8' or 'ec2.2' subcommands")
+		fmt.Println("expected 's3.8' or 'ec2.2' or 'ssm.7' subcommands")
 		os.Exit(1)
 	}
 
@@ -90,8 +92,24 @@ func main() {
 		}()
 		vpcutils.FixEc2_2(ctx, ch, execute, profile)
 
+	case "ssm.7":
+		execute := fixSSM_7.Bool("execute", false, "Execute the fix operation")
+		profile := fixSSM_7.String("profile", "", "AWS profile to use")
+		region := fixSSM_7.String("region", "", "The region to check")
+
+		fixSSM_7.Parse(os.Args[2:])
+
+		if *profile == "" {
+			log.Fatal("Please provide a named AWS profile")
+		}
+
+		accountDetails, err := common.GetAccountDetails(ctx, *profile, *region)
+		common.ExitOnError(err, "Failed to get account details")
+
+		ssmutils.RunSSM7FixerForAllRegions(ctx, *profile, accountDetails, *execute)
+
 	default:
-		fmt.Println("expected 's3.8' or 'ec2.2' subcommands")
+		fmt.Println("expected 's3.8' or 'ec2.2' or 'ssm.7' subcommands")
 		os.Exit(1)
 	}
 }
