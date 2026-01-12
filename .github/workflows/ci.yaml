@@ -39,6 +39,8 @@ jobs:
 
   commit-lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     name: Run Commitlint
     steps:
       - name: Conventional Commitlint
@@ -46,6 +48,8 @@ jobs:
 
   enforce-dashes:
     name: Enforce dashes in project names
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
