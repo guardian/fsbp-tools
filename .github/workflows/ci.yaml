@@ -57,6 +57,8 @@ jobs:
 
       - name: Lint fsbp-fix
         run: ./script/dash-lint.sh fsbp-fix
+      - name: Create directory
+        run: mkdir -p ${{ github.workspace }}/new-folder
 
   release:
     name: Create GitHub release
