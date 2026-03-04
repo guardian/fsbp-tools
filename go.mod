@@ -1,6 +1,6 @@
 module github.com/guardian/fsbp-tools/fsbp-fix
 
-go 1.23.2
+go 1.24
 
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.10
@@ -15,7 +15,7 @@ require (
 require github.com/aws/aws-sdk-go-v2/service/signin v1.0.6 // indirect
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.41.2
+	github.com/aws/aws-sdk-go-v2 v1.41.3
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.5 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.18 // indirect
@@ -29,5 +29,5 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.18 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.30.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.15 // indirect
-	github.com/aws/smithy-go v1.24.1 // indirect
+	github.com/aws/smithy-go v1.24.2 // indirect
 )
