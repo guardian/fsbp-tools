@@ -1,0 +1,2 @@
+[tools]
+go = {version = "prefix:1", source = "go.mod"}
