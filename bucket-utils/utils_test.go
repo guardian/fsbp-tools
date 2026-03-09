@@ -12,7 +12,7 @@ func evaluateResult(t *testing.T, result []string, expected []string, message st
 		fmt.Println(result)
 		fmt.Println("Expected: ")
 		fmt.Println(expected)
-		t.Errorf(message)
+		t.Errorf("%s", message)
 	}
 }
 
