@@ -8,8 +8,20 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "quarterly"
+    cooldown:
+      default-days: 2
     groups:
       aws:
         patterns:
-          - "github.com/aws/aws-sdk-go-v2/*"
+          - "github.com/aws/aws-sdk-go-v2*"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'quarterly'
+    cooldown:
+      default-days: 2
+    groups:
+      gh-actions:
+        patterns:
+          - '*'
