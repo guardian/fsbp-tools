@@ -12,8 +12,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.43.5
 )
 
-require github.com/aws/aws-sdk-go-v2/service/signin v1.2.2 // indirect
-
 require (
 	github.com/aws/aws-sdk-go-v2 v1.42.1
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.14 // indirect
